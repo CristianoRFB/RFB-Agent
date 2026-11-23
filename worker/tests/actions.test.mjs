@@ -37,6 +37,7 @@ function fixture(){
  const fake={
   records,
   begin:async()=>({t:"synthetic"}),
+  rollback:async()=>({}),
   batchGet:async(paths)=>paths.map(p=>records.get(p)??null),
   commit:apply,
   create:sa.create.bind(sa),patch:sa.patch.bind(sa),delete:sa.delete.bind(sa),

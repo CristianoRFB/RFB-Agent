@@ -33,8 +33,24 @@ const strId=()=>crypto.randomUUID().replace(/-/g,"");
 async function inTransaction(store,work){
  for(let attempt=0;attempt<3;attempt++){
   const tx=await store.begin();
-  try{return await work(tx);}
-  catch(error){
+  let closed=false;
+  async function commit(writes){
+   await store.commit(tx,writes);
+   closed=true;
+  }
+  async function release(){
+   if(closed)return;
+   try{await store.rollback(tx);}catch{}
+   closed=true;
+  }
+  try{
+   const value=await work(tx,commit);
+   // Read-only / replay branches MUST release the transaction. Leaving it
+   // open retains Firestore read locks and causes later requests to deadlock.
+   await release();
+   return value;
+  }catch(error){
+   await release();
    if(error instanceof StoreError&&error.message==="CONFLITO_CONCORRENTE"&&attempt<2)continue;
    throw error;
   }
@@ -46,7 +62,7 @@ export async function confirmBooking(store,uid,body,now=new Date()){
  if(body.accepted!==true)throw new ActionError("CONFIRMACAO_EXPLICITA_OBRIGATORIA");
  const {base,conversation}=paths(body.companyId,body.conversationId);
  const id=requiredId(body.proposalId),m=base+"/members/"+uid,p=conversation+"/proposals/"+id,b=conversation+"/bookings/"+id;
- return inTransaction(store,async tx=>{
+ return inTransaction(store,async (tx,commit)=>{
   const [member,conv,proposal,booking]=await store.batchGet([m,conversation,p,b],tx);
   checkScope(member,conv,body.companyId,uid,{customerOnly:true});
   checkProposal(proposal,uid);
@@ -60,7 +76,7 @@ export async function confirmBooking(store,uid,body,now=new Date()){
   const key=slotKey(proposal.slot),lock=base+"/slots/"+key;
   const [locked]=await store.batchGet([lock],tx);
   if(locked)throw new ActionError("HORARIO_OCUPADO",409);
-  await store.commit(tx,[
+  await commit([
    store.create(lock,{customerUid:uid,conversationId:body.conversationId,proposalId:id,status:"confirmed",slot:proposal.slot,createdAt:now}),
    store.patch(p,{status:"confirmed",confirmedAt:now}),
    store.create(b,{customerUid:uid,proposalId:id,slot:proposal.slot,slotKey:key,status:"confirmed",createdAt:now,mode:"WORKER_FIRESTORE"}),
@@ -74,7 +90,7 @@ export async function cancelBooking(store,uid,body,now=new Date()){
  if(body.accepted!==true)throw new ActionError("CANCELAMENTO_EXPLICITO_OBRIGATORIO");
  const {base,conversation}=paths(body.companyId,body.conversationId);
  const id=requiredId(body.proposalId),p=conversation+"/proposals/"+id,b=conversation+"/bookings/"+id;
- return inTransaction(store,async tx=>{
+ return inTransaction(store,async (tx,commit)=>{
   const [member,conv,proposal,booking]=await store.batchGet([base+"/members/"+uid,conversation,p,b],tx);
   checkScope(member,conv,body.companyId,uid,{customerOnly:true});
   checkProposal(proposal,uid);
@@ -85,7 +101,7 @@ export async function cancelBooking(store,uid,body,now=new Date()){
   const [held]=await store.batchGet([lock],tx);
   if(!held||held.proposalId!==id||held.conversationId!==body.conversationId)
    throw new ActionError("CONFLITO_BLOQUEIO_HORARIO",409);
-  await store.commit(tx,[
+  await commit([
    store.patch(b,{status:"cancelled",cancelledAt:now}),store.patch(p,{status:"cancelled",cancelledAt:now}),
    store.delete(lock),store.create(conversation+"/audit/"+strId(),{type:"BOOKING_CANCELLED_EXPLICIT",actorUid:uid,proposalId:id,createdAt:now})
   ]);
@@ -96,13 +112,13 @@ export async function cancelProposal(store,uid,body,now=new Date()){
  validateBody(body,["companyId","conversationId","proposalId","accepted"]);
  const {base,conversation}=paths(body.companyId,body.conversationId);
  const id=requiredId(body.proposalId),p=conversation+"/proposals/"+id;
- return inTransaction(store,async tx=>{
+ return inTransaction(store,async (tx,commit)=>{
   const [member,conv,proposal]=await store.batchGet([base+"/members/"+uid,conversation,p],tx);
   checkScope(member,conv,body.companyId,uid,{customerOnly:true});
   checkProposal(proposal,uid);
   if(proposal.status==="cancelled")return {status:"cancelled",replayed:true};
   if(proposal.status!=="pending")throw new ActionError("PROPOSTA_INDISPONIVEL",409);
-  await store.commit(tx,[
+  await commit([
    store.patch(p,{status:"cancelled",cancelledAt:now}),
    store.create(conversation+"/audit/"+strId(),{type:"PROPOSAL_CANCELLED",actorUid:uid,proposalId:id,createdAt:now})
   ]);
@@ -112,12 +128,12 @@ export async function cancelProposal(store,uid,body,now=new Date()){
 export async function humanHandoff(store,uid,body,now=new Date()){
  validateBody(body,["companyId","conversationId"]);
  const {base,conversation}=paths(body.companyId,body.conversationId);
- return inTransaction(store,async tx=>{
+ return inTransaction(store,async (tx,commit)=>{
   const [member,conv]=await store.batchGet([base+"/members/"+uid,conversation],tx);
   checkScope(member,conv,body.companyId,uid);
   if(conv.status==="human")return {status:"human",replayed:true,notified:false};
   if(conv.status!=="open")throw new ActionError("CONVERSA_INDISPONIVEL",409);
-  await store.commit(tx,[
+  await commit([
    store.patch(conversation,{status:"human",updatedAt:now}),
    store.create(conversation+"/audit/"+strId(),{type:"HUMAN_HANDOFF_REQUESTED",actorUid:uid,createdAt:now})
   ]);
@@ -134,7 +150,7 @@ export async function sourceResponse(store,uid,body,now=new Date()){
  const {base,conversation}=paths(body.companyId,body.conversationId);
  const question=typeof body.question==="string"?body.question.trim():"";
  if(!question||question.length>500)throw new ActionError("PERGUNTA_INVALIDA");
- return inTransaction(store,async tx=>{
+ return inTransaction(store,async (tx,commit)=>{
   const [member,conv]=await store.batchGet([base+"/members/"+uid,conversation],tx);
   checkScope(member,conv,body.companyId,uid);
   // Deliberately never retrieve private knowledge, even for staff.
@@ -148,7 +164,7 @@ export async function sourceResponse(store,uid,body,now=new Date()){
   const source=best?{id:best.id,title:String(best.title).slice(0,120),version:best.version}:null;
   const response=best?"Conforme a base de conhecimento: "+String(best.body).slice(0,800)
     :"Não encontrei um fato verificável na base. Solicite transferência para atendimento humano.";
-  await store.commit(tx,[
+  await commit([
    store.create(conversation+"/messages/"+strId(),{customerUid:conv.customerUid,senderUid:"rfb-simulator",senderRole:"simulator",text:response,source,createdAt:now}),
    store.create(conversation+"/audit/"+strId(),{type:"LEXICAL_RESPONSE_WITH_PROVENANCE",actorUid:uid,sourceId:source?.id??null,createdAt:now})
   ]);

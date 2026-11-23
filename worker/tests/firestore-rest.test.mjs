@@ -44,6 +44,7 @@ test("serialização tipada e transporte de transações Firestore",async()=>{
     JSON.stringify({missing:documents[1]})+"\n", {headers:{"Content-Type":"application/json"}});
   }
   if(url.endsWith(":commit"))return Response.json({commitTime:"2026-11-23T12:00:00Z",writeResults:[]});
+  if(url.endsWith(":rollback"))return Response.json({});
   throw Error("unexpected "+url);
  };
  const store=new FirestoreRest(env,{fetchImpl,accessToken:"synthetic-access-token"});
@@ -60,6 +61,8 @@ test("serialização tipada e transporte de transações Firestore",async()=>{
  assert.equal(history.at(-1).body.writes.length,3);
  assert.equal(writes[0].currentDocument.exists,false);
  assert.deepEqual(writes[1].updateMask.fieldPaths,["status"]);
+ await store.rollback(transaction);
+ assert.equal(history.at(-1).url.endsWith(":rollback"),true);
  assert.equal(writes[0].update.fields.slot.timestampValue,"2026-11-24T10:00:00.000Z");
  assert.throws(()=>store.create("../../secret",{a:true}),/CAMINHO_INVALIDO/);
 });

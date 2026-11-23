@@ -122,6 +122,10 @@ export class FirestoreRest {
   if(!Array.isArray(writes)||writes.length<1||writes.length>20)throw new StoreError("ESCRITAS_INVALIDAS",400);
   return JSON.parse(await this.request("POST",":commit",{transaction,writes}));
  }
+ async rollback(transaction){
+  if(typeof transaction!=="string"||!transaction)throw new StoreError("TRANSACTION_INVALIDA",400);
+  return JSON.parse(await this.request("POST",":rollback",{transaction}));
+ }
  async publicKnowledge(companyPath,transaction,limit=50){
   const path=validPath(companyPath);
   if(!/^companies\/[A-Za-z0-9_-]+$/.test(path))throw new StoreError("CAMINHO_INVALIDO",400);
