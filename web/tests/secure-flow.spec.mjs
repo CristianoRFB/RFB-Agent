@@ -15,8 +15,6 @@ test("cliente autenticado: conversa persistente e proposta sem reserva",async({p
  await expect(page.getByText(/Nova conversa criada/)).toBeVisible();
  await page.locator("#reply").fill("Qual o horário de atendimento?");
  await page.getByRole("button",{name:"Enviar",exact:true}).click();
- await page.waitForTimeout(900);
- console.log("QA_DIAG_AFTER_SEND", JSON.stringify({feedback:await page.locator(".feedback").allTextContents(),errors:await page.locator(".error").allTextContents(),selected:await page.locator(".item.selected").allTextContents(),messages:await page.locator(".messages").allTextContents()}));
  await expect(page.getByText("Qual o horário de atendimento?")).toBeVisible();
  await page.reload();
  await expect(page.getByRole("heading",{name:"Conversas"})).toBeVisible();

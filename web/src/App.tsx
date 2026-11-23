@@ -55,9 +55,10 @@ export default function App(){
  // Customer documents are fetched using a separate boolean filter below; no unscoped customer query.
  const customerKnowledge=useItems<Knowledge>(root&&member?.role==="customer"?root+"/knowledge":null,member?.role==="customer"?{field:"published",value:true}:undefined);
  const conv=conversations.items.find(x=>x.id===selected)??conversations.items[0], cid=selected??conv?.id;
- const messages=useItems<Message>(root&&cid?root+"/conversations/"+cid+"/messages":null);
- const proposals=useItems<Proposal>(root&&cid?root+"/conversations/"+cid+"/proposals":null);
- const bookings=useItems<{id:string;status:string}>(root&&cid?root+"/conversations/"+cid+"/bookings":null);
+ const customerScope=member?.role==="customer"&&user?{field:"customerUid",value:user.uid}:undefined;
+ const messages=useItems<Message>(root&&cid?root+"/conversations/"+cid+"/messages":null,customerScope);
+ const proposals=useItems<Proposal>(root&&cid?root+"/conversations/"+cid+"/proposals":null,customerScope);
+ const bookings=useItems<{id:string;status:string}>(root&&cid?root+"/conversations/"+cid+"/bookings":null,customerScope);
  const staff=member?.role==="manager"||member?.role==="attendant";
  const configs=useItems<AgentConfig>(root&&staff?root+"/agentConfig":null);
  const docs=member?.role==="customer"?customerKnowledge.items:knowledge.items;
@@ -75,7 +76,7 @@ export default function App(){
  async function send(e:FormEvent){
   e.preventDefault();if(!db||!root||!cid||!user||!text.trim())return;
   const value=text.trim();
-  await run(()=>addDoc(collection(checkedDb(),root+"/conversations/"+cid+"/messages"),{senderUid:user.uid,senderRole:staff?"staff":"customer",text:value,createdAt:serverTimestamp()}),"Mensagem persistida sem acionar IA.");
+  await run(()=>addDoc(collection(checkedDb(),root+"/conversations/"+cid+"/messages"),{customerUid:conv?.customerUid??user.uid,senderUid:user.uid,senderRole:staff?"staff":"customer",text:value,createdAt:serverTimestamp()}),"Mensagem persistida sem acionar IA.");
   setText("");
  }
  async function saveKnowledge(e:FormEvent){

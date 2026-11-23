@@ -114,7 +114,7 @@ async function respondFromKnowledge(db,uid,body) {
  const message=db.collection(base+"/conversations/"+conversationId+"/messages").doc();
  const audit=db.collection(base+"/conversations/"+conversationId+"/audit").doc();
  const batch=db.batch();
- batch.create(message,{senderUid:"rfb-simulator",senderRole:"simulator",text:response,source,createdAt:Timestamp.now()});
+ batch.create(message,{customerUid:c.get("customerUid"),senderUid:"rfb-simulator",senderRole:"simulator",text:response,source,createdAt:Timestamp.now()});
  batch.create(audit,{type:"LEXICAL_RESPONSE_WITH_PROVENANCE",actorUid:uid,sourceId:source?.id??null,createdAt:Timestamp.now()});
  await batch.commit();
  return {messageId:message.id,source,mode:"LEXICAL_SIMULATOR",booked:false};

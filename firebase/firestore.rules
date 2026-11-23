@@ -135,15 +135,20 @@ service cloud.firestore {
         allow delete: if false;
 
         match /messages/{messageId} {
-          allow get, list: if conversationVisible(companyId, conversationId);
+          allow get: if conversationVisible(companyId, conversationId);
+          // Lists are queries: each customer must prove ownership with
+          // where("customerUid", "==", request.auth.uid) on the child document.
+          allow list: if isStaff(companyId)
+            || (isMember(companyId) && resource.data.customerUid == request.auth.uid);
           allow create: if conversationVisible(companyId, conversationId)
             && request.resource.data.keys().hasOnly([
-              'senderUid','senderRole','text','createdAt'
+              'customerUid','senderUid','senderRole','text','createdAt'
             ])
             && request.resource.data.keys().hasAll([
-              'senderUid','senderRole','text','createdAt'
+              'customerUid','senderUid','senderRole','text','createdAt'
             ])
             && request.resource.data.senderUid == request.auth.uid
+            && request.resource.data.customerUid == get(conversationPath(companyId, conversationId)).data.customerUid
             && request.resource.data.text is string
             && request.resource.data.text.size() > 0
             && request.resource.data.text.size() <= 1000
@@ -158,7 +163,9 @@ service cloud.firestore {
         }
 
         match /proposals/{proposalId} {
-          allow get, list: if conversationVisible(companyId, conversationId);
+          allow get: if conversationVisible(companyId, conversationId);
+          allow list: if isStaff(companyId)
+            || (isMember(companyId) && resource.data.customerUid == request.auth.uid);
           allow create: if conversationBelongsToCustomer(companyId, conversationId)
             && role(companyId) == 'customer'
             && request.resource.data.keys().hasOnly([
@@ -181,7 +188,9 @@ service cloud.firestore {
         }
 
         match /bookings/{bookingId} {
-          allow get, list: if conversationVisible(companyId, conversationId);
+          allow get: if conversationVisible(companyId, conversationId);
+          allow list: if isStaff(companyId)
+            || (isMember(companyId) && resource.data.customerUid == request.auth.uid);
           allow create, update, delete: if false;
         }
 

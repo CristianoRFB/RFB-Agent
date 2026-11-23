@@ -65,10 +65,10 @@ test("cliente pode abrir própria conversa, não se fazer passar por outro",asyn
  await assertFails(setDoc(conv("customerB","alpha","new-fake"),{companyId:"alpha",customerUid:"customerA",status:"open",createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
 });
 test("mensagem do cliente tem autoria verificada; bloqueia IA falsa e escrita cruzada",async()=>{
- await assertSucceeds(setDoc(messageRef("customerA"),{senderUid:"customerA",senderRole:"customer",text:"Qual o horário?",createdAt:serverTimestamp()}));
- await assertFails(setDoc(messageRef("customerA"),{senderUid:"customerA",senderRole:"agent",text:"IA forjada",createdAt:serverTimestamp()}));
- await assertFails(setDoc(messageRef("customerB"),{senderUid:"customerB",senderRole:"customer",text:"Outra conversa",createdAt:serverTimestamp()}));
- await assertSucceeds(setDoc(messageRef("attendantA"),{senderUid:"attendantA",senderRole:"staff",text:"Atendimento humano",createdAt:serverTimestamp()}));
+ await assertSucceeds(setDoc(messageRef("customerA"),{customerUid:"customerA",senderUid:"customerA",senderRole:"customer",text:"Qual o horário?",createdAt:serverTimestamp()}));
+ await assertFails(setDoc(messageRef("customerA"),{customerUid:"customerA",senderUid:"customerA",senderRole:"agent",text:"IA forjada",createdAt:serverTimestamp()}));
+ await assertFails(setDoc(messageRef("customerB"),{customerUid:"customerA",senderUid:"customerB",senderRole:"customer",text:"Outra conversa",createdAt:serverTimestamp()}));
+ await assertSucceeds(setDoc(messageRef("attendantA"),{customerUid:"customerA",senderUid:"attendantA",senderRole:"staff",text:"Atendimento humano",createdAt:serverTimestamp()}));
 });
 test("conhecimento publicado acessível ao cliente; interno apenas staff",async()=>{
  await assertSucceeds(getDoc(kb("customerA")));
@@ -101,7 +101,7 @@ test("cliente não escreve auditoria e não altera mensagens",async()=>{
  await assertFails(setDoc(doc(dbFor("customerA"),"companies/alpha/conversations/conversation-a/audit/forged"),{event:"approved"}));
  await assertFails(setDoc(doc(dbFor("managerA"),"companies/alpha/conversations/conversation-a/audit/forged"),{event:"approved"}));
  const x=messageRef("customerA");
- await assertSucceeds(setDoc(x,{senderUid:"customerA",senderRole:"customer",text:"Olá",createdAt:serverTimestamp()}));
+ await assertSucceeds(setDoc(x,{customerUid:"customerA",senderUid:"customerA",senderRole:"customer",text:"Olá",createdAt:serverTimestamp()}));
  await assertFails(updateDoc(x,{text:"forjado"}));
 });
 
@@ -121,7 +121,13 @@ test("configuração versionada do simulador é exclusiva do gestor",async()=>{
 
 test("cliente autorizado também pode consultar mensagens persistidas da conversa",async()=>{
  const ownMessages=collection(dbFor("customerA"),"companies/alpha/conversations/conversation-a/messages");
- await assertSucceeds(getDocs(ownMessages));
+ await env.withSecurityRulesDisabled(async ctx=>{
+  await setDoc(doc(ctx.firestore(),"companies/alpha/conversations/conversation-a/messages/persisted"),{
+    customerUid:"customerA",senderUid:"customerA",senderRole:"customer",text:"Persistido",createdAt:Timestamp.now()
+  });
+ });
+ await assertSucceeds(getDocs(query(ownMessages,where("customerUid","==","customerA"))));
+ await assertFails(getDocs(ownMessages)); // unbounded query must fail
  const otherMessages=collection(dbFor("customerB"),"companies/alpha/conversations/conversation-a/messages");
- await assertFails(getDocs(otherMessages));
+ await assertFails(getDocs(query(otherMessages,where("customerUid","==","customerA"))));
 });
