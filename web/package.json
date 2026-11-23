@@ -20,6 +20,7 @@
     "@vitejs/plugin-react": "^5.1.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "cf": "1.0.0-rc.2"
+    "cf": "1.0.0-rc.2",
+    "@cloudflare/vite-plugin": "2.0.0-rc.0"
   }
 }
