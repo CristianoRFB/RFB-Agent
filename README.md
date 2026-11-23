@@ -1,32 +1,41 @@
 # RFBAgent — Atendimento que entende e executa com permissão
 
-Produto 08 do RFB Labs, desenvolvido segundo o RFB Method GPT.
+Produto 08 do RFB Labs desenvolvido conforme RFB Method. **Código de núcleo testado em emuladores; produção não configurada nem publicada.**
 
-**Status:** software de homologação com dados sintéticos. Autenticação, permissões, histórico, busca lexical com fonte, propostas, confirmação transacional local, auditoria e solicitação humana foram implementados e testados no Firebase Emulator. **Não é IA generativa nem SaaS implantado.**
+## O que funciona na homologação local
 
-## Repositório e entrega
+- React, TypeScript e Vite com Firebase Auth/Firestore Emulators, layout responsivo, inbox com histórico e fontes versionadas.
+- Papéis cliente/atendente/gestor, isolamento de empresa e consultas filtradas pelo proprietário, com Firestore Rules.
+- Simulador **LEXICAL** com referência à fonte versionada e fallback para humano. Sem LLM ou busca semântica real.
+- Proposta de horário, confirmação explícita, uma reserva por intervalo de 30 minutos por empresa, cancelamento, retry idempotente e eventos de auditoria.
+- Transferência humana, fila operacional para atendente/gestor, resolução auditada, histórico de eventos e contagens básicas.
+- Editor de fontes versionadas, alternância de visibilidade e configurações do simulador por gerente.
 
-- Desenvolvimento em [PR draft #1](https://github.com/CristianoRFB/RFB-Agent/pull/1), sem merge e sem produção.
-- Aplicação principal: pasta `web/` — React, TypeScript e Vite, login e Firestore no Emulator.
-- Gateway autorizado: `gateway/server.mjs` — Node e Firebase Admin somente no localhost (não é Worker Cloudflare).
-- Regras: `firebase/firestore.rules`; scripts e fixtures sintéticas no diretório `firebase/`.
-- App antigo em `index.html` na raiz é demo **sem autenticação**; mantenha só como referência visual.
+## Cloudflare — código buildável, não implantado
 
-## Execução
+- A pasta worker/ contém validação RSA SHA256 de tokens Firebase, OAuth 2.0 service account, Firestore REST transacional, seis rotas em allowlist e bloqueio por padrão.
+- O frontend suporta modo staging somente via configuração explícita VITE_ENABLE_STAGING e Firebase público; nunca armazene chave de serviço em variável VITE_.
+- A integração REST passou no Firestore Emulator e o cf CLI gerou pacote Worker + assets; **não equivale a Worker operando na Cloudflare**.
+- O aplicativo não possui projeto Firebase de staging real, chave IAM, secret, domínio, implantação, billing ou produção configurada.
 
-Leia [docs/DEV-SETUP.md](docs/DEV-SETUP.md) para Node 24, Java 21, Firebase Emulators, seed de usuários fictícios, gateway, SPA e testes. Nunca use senhas, usuários reais ou conexão de produção.
+## QA comprovado
 
-## Qualidade
+| Etapa | Resultado | Evidência |
+| --- | --- | --- |
+| Node unitário | 7/7 PASS | [run 45179282407](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282407) |
+| Firestore Rules | 13/13 PASS | [run 45179282287](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282287) |
+| Gateway local | 14/14 PASS | [run 45179282618](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282618) |
+| Worker segurança e ações | 13/13 PASS | [run 45179282327](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282327) |
+| Worker Firestore REST com emulador | 4/4 PASS | [run 45179282353](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282353) |
+| Build Cloudflare cf + Static Assets | PASS | [run 45179282396](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282396) |
+| Playwright Auth/Firestore/Gateway | 3/3 PASS | [run 45179282459](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282459) |
 
-- Firestore Rules 13 testes PASS; gateway 10 PASS, domínio 7 PASS.
-- Playwright integrado Chromium 3 PASS (Auth/Firestore/Gateway Emulator).
-- React TypeScript + Vite build PASS.
-- Detalhes e evidências: [docs/rfb/PROGRESS.md](docs/rfb/PROGRESS.md).
+## Referências
 
-## Fonte e planejamento
+- [Inicialização local](docs/DEV-SETUP.md) · [Cloudflare e gates](docs/CLOUDFLARE-PLAN.md) · [Ameaças](docs/ARCHITECTURE.md)
+- [Fonte original](docs/source/ESPECIFICACAO-RFB.txt) · [Starter Pack](docs/source/STARTER-PACK.md) · [58 telas](docs/source/UX-DESIGN-AND-QA.md) · [Diagramas implementados](docs/IMPLEMENTED-DIAGRAMS.md)
+- [Rastreabilidade F01–F12](docs/FEATURE-TRACEABILITY.md) · [Estado](docs/rfb/STATE.json) · [Handoff](docs/HANDOFF.md)
 
-[Especificação original](docs/source/ESPECIFICACAO-RFB.txt) · [Starter Pack](docs/source/STARTER-PACK.md) · [Catálogo de 58 telas](docs/source/UX-DESIGN-AND-QA.md) · [Diagramas do código](docs/IMPLEMENTED-DIAGRAMS.md) · [Rastreabilidade F01–F12](docs/FEATURE-TRACEABILITY.md) · [Plano Cloudflare](docs/CLOUDFLARE-PLAN.md).
+**Ainda não há 90% ou conclusão integral demonstrada**. Faltam IA semântica real, uso com Firebase staging/produção, infraestrutura aprovada, APIs externas de agenda e notificações, catálogo completo de telas, segurança/privacidade/observabilidade de produção.
 
-**Meta R$ 0/mês:** nenhum produto pago habilitado, nenhum Cloudflare Worker/Pages RFBAgent criado. Cotas futuras precisam ser confirmadas. Não habilitar Blaze, pagamento, IA paga, SMS, produção ou merge sem revisão e autorização.
-
-**90% do produto original NÃO foi atingido ou comprovado.** Código testado no Emulator é uma base operacional para desenvolvimento; APIs compatíveis com Cloudflare, IA semântica real, agenda externa, notificações, privacidade/backup e o catálogo integral de telas continuam pendentes.
+**Meta R$0/mês:** nenhuma operação financeira ou recurso Cloudflare/Firebase real foi criado; confirmar limites do Spark/Workers Free antes de qualquer deploy. [PR #1](https://github.com/CristianoRFB/RFB-Agent/pull/1) permanece DRAFT.

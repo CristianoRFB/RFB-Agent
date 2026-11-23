@@ -9,112 +9,125 @@
   "documentationCommit": "d72f89ccb4351c36ee3490e216ebc3c2e32b1329",
   "implementationCommit": "a34af92533a3e789eab3a31a47fb090fe002fc8a",
   "pr": "https://github.com/CristianoRFB/RFB-Agent/pull/1",
-  "stage": "EMULATOR_BACKEND_FUNCTIONAL_TESTED_NOT_PRODUCTION",
-  "environment": "AUTH_FIRESTORE_EMULATOR_REACT_GATEWAY_NODE",
+  "stage": "CORE_LOCAL_AND_WORKER_REST_TESTED_NOT_DEPLOYED",
+  "environment": "FIREBASE_AUTH_FIRESTORE_EMULATORS_AND_CLOUDFLARE_CF_BUILD",
   "production": "NOT_RUN",
   "costGoalBRLMonthly": 0,
   "tasks": [
     {
       "id": "S001",
       "status": "REVIEW",
-      "acceptance": "Original 5 docs, architecture and risk decisions; visual T001-T058 not completed"
+      "acceptance": "5 original source docs + architecture, diagrams, 58-screen catalogue preserved; full visual QA incomplete"
     },
     {
       "id": "S002",
-      "status": "TESTED_EMULATOR",
-      "acceptance": "Firebase Auth local + Rules tenant, ownership, role, immutable client audit and confirmed booking"
+      "status": "VERIFIED_EMULATOR",
+      "acceptance": "Auth/Firestore Rules tenant ownership and staff-only audit; status updates blocked without gateway"
     },
     {
       "id": "S003",
-      "status": "TESTED_LEXICAL_SIMULATOR",
-      "acceptance": "Versioned sources, answer with provenance, safe fallback; semantic LLM/RAG missing"
+      "status": "VERIFIED_LEXICAL_SIMULATOR",
+      "acceptance": "Versioned, manager-editable sources with citations and fallback; true semantic LLM/RAG still missing"
     },
     {
       "id": "S004",
-      "status": "TESTED_EMULATOR",
-      "acceptance": "Explicit confirm, transaction, retry, expiry and cancel, audit; no external calendar"
+      "status": "VERIFIED_EMULATOR",
+      "acceptance": "30-minute tenant-exclusive booking lock, explicit confirmation/cancel, idempotency, audit; no external calendar"
     },
     {
       "id": "S005",
-      "status": "PARTIAL_TESTED_EMULATOR",
-      "acceptance": "Handoff request/status/audit only, manager config, staff audit timeline and basic counts; no external notifications"
+      "status": "VERIFIED_EMULATOR_PARTIAL",
+      "acceptance": "Customer handoff and staff human queue with audited resolution; external notifications absent"
     },
     {
       "id": "S006",
-      "status": "BLOCKED_PRODUCTION_GATE",
-      "acceptance": "Cloudflare Worker adapter and secure hosted Firebase project, approval, quotas, rollback and real QA"
+      "status": "BUILD_VERIFIED_NOT_DEPLOYED",
+      "acceptance": "Cloudflare cf build produced Worker + Static Assets, verified token REST adapter and SDK-free transactions with Emulator; no production secrets/staging"
     },
     {
       "id": "S007",
-      "status": "BACKLOG",
-      "acceptance": "True semantic retrieval/AI under verified zero-cost resource and 58 fully designed/tested journeys"
+      "status": "BACKLOG_BLOCKED_EXTERNAL",
+      "acceptance": "Real Firebase staging/prod, AI semantic/inference within verified free quota, external integrations, complete T001–T058 and production assurance"
     }
   ],
   "qa": {
-    "domain": {
+    "nodeUnitTests": {
       "status": "PASS",
-      "tests": 7,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617034"
+      "casesPassed": 7,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282407"
     },
     "firestoreRules": {
       "status": "PASS",
-      "tests": 13,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095616989"
+      "casesPassed": 13,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282287"
     },
     "gateway": {
       "status": "PASS",
-      "tests": 10,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095823085"
+      "casesPassed": 14,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282618"
+    },
+    "workerUnit": {
+      "status": "PASS",
+      "casesPassed": 13,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282327"
+    },
+    "workerRestEmulator": {
+      "status": "PASS",
+      "casesPassed": 4,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282353"
     },
     "reactBuild": {
       "status": "PASS",
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617036"
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282371"
     },
-    "browserLegacy": {
+    "cloudflareBuild": {
       "status": "PASS",
-      "tests": 3,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617046"
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282396",
+      "mode": "inert staging, build only"
     },
     "browserIntegrated": {
       "status": "PASS",
-      "tests": 3,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095857436",
-      "notes": "Playwright Chromium with synthetic Auth+Firestore and local gateway; screenshots artifacts in run; not production QA"
+      "casesPassed": 3,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282459",
+      "environment": "Synthetic Firebase Auth + Firestore Emulator + Node Gateway"
     },
     "productionSecurity": {
       "status": "NOT_RUN"
     },
-    "externalCalendar": {
+    "cloudflareRuntimeDeployment": {
       "status": "NOT_RUN"
     },
-    "cloudflareDeployment": {
+    "externalCalendar": {
       "status": "NOT_RUN"
     }
   },
   "risks": [
-    "AV-01 production authorization not yet deployed",
-    "AV-02 Firebase Emulator is isolated development only",
-    "AV-03 Node Admin gateway not compatible with Cloudflare Worker runtime",
-    "AV-04 actual semantic AI/RAG not implemented",
-    "AV-05 external calendar and notifications absent",
-    "AV-06 58-screen visual/functional QA incomplete",
-    "AV-07 production data retention/backup/LGPD pending"
+    "AV-01 Service account OAuth bypasses Firestore Rules: Worker must independently verify each tenant, role and ownership on every path; staging security review required",
+    "AV-02 CF Worker compiled and REST transport passed in local Emulator, NOT tested in deployed Worker runtime",
+    "AV-03 Firebase staging app/project, service secrets, least privilege IAM and free quota not provisioned",
+    "AV-04 No real semantic retrieval/LLM or guaranteed AI at R$0; lexical deterministic simulator clearly labeled",
+    "AV-05 No external calendar or notifications; human queue is database-internal",
+    "AV-06 Full catalogue T001–T058, onboarding, accessibility and production lifecycle not complete",
+    "AV-07 Backup/restore, data retention, LGPD, rate limiting, secrets rotation, observability, SLA not validated"
   ],
-  "nextSlice": "Security review then portable Worker adapter and independently isolated Firebase staging, after verifying free quotas and explicit authorization; expand UX T001–T058 and real semantic model without paid APIs.",
+  "nextSlice": "Set up isolated Firebase Spark staging only with explicit approval and verified free limits, configure Worker secrets via approved tooling and do staging QA; semantic AI/free budget, external calendar, notifications, 58-screen gap analysis follow. PR remains draft and no deployment/merge.",
   "browserTestedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311",
-  "updatedUtc": "2026-11-23T01:43:00Z",
+  "updatedUtc": "2026-11-23T13:00:00Z",
   "prodStatus": "NOT_DEPLOYED",
   "sourceOfTruth": "docs/source/ESPECIFICACAO-RFB.txt",
   "completionPercent": "NOT_MEASURED_90_PERCENT_NOT_DEMONSTRATED",
   "currentHeadAtCheckpoint": "94cbbf26f0bd37aa5feafe42cd10642456ea3632",
   "cloudflare": {
     "accountChecked": true,
-    "matchingRfbagentWorkers": 0,
-    "matchingRfbagentPages": 0,
+    "workerAdapterBuilt": true,
+    "cfBuild": "PASS",
+    "cfArtifactRun": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282396",
+    "integration": "TESTED_ONLY_IN_FIRESTORE_EMULATOR",
     "resourcesCreated": 0,
     "deploy": "NOT_RUN",
     "billingChanged": false,
-    "production": "NOT_RUN"
+    "secretConfigured": false,
+    "stagingFirebaseConfigured": false
   },
-  "codeHeadBeforeCheckpoint": "02e4093dc9d1ec28bd08edcd07565f220e67a6f4"
+  "codeHeadBeforeCheckpoint": "75a697a6345f60ef66cf0b6de93623b30d1ad3ce"
 }

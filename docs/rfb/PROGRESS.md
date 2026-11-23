@@ -1,37 +1,31 @@
-# RFBAgent — checkpoint da rodada 22/11/2026
+# RFBAgent — PROGRESS (rodada 23/11/2026)
 
-Repo: CristianoRFB/RFB-Agent | [PR draft #1](https://github.com/CristianoRFB/RFB-Agent/pull/1).
-Branch: feature/rfb-agent-g1-vertical-simulator. Código publicado até 02e4093dc9d1ec28bd08edcd07565f220e67a6f4.
+**Repo:** CristianoRFB/RFB-Agent. **PR existente:** https://github.com/CristianoRFB/RFB-Agent/pull/1 (DRAFT).
+**Head do código antes deste checkpoint:** 75a697a6345f60ef66cf0b6de93623b30d1ad3ce
 
-## Fatias concluídas no ambiente de teste
+## Entregas verificadas
+- Corrigida colisão de horários: bloqueio transacional de um booking por empresa/bloco de 30 minutos; cancelar booking confirmado libera slot; replay preserva auditoria.
+- Criado Worker Cloudflare API com validação Firebase JWT RS256, OAuth service account WebCrypto, Firestore REST e seis ações autorizadas, todos desabilitados por padrão sem staging.
+- Corrigido bug de locks do Firestore REST ao implementar rollback em respostas sem escrita ou erros; CI 4/4 transações reais no Emulator.
+- Criada configuração `cf` CLI + Cloudflare Vite plugin v2, build de Worker + Static Assets aprovado e arquivado sem deploy.
+- React staging opcional (HTTPS, projeto Firebase isolado), nenhuma credencial real ou valor secreto no bundle.
+- Fontes de conhecimento editáveis com incremento de versão; fila de atendimento humano, resolução autenticada e auditoria; cliente e staff não alteram status diretamente.
 
-- 5 documentos originais do produto 08 versionados, sem sobrescrever origem.
-- UI React + TypeScript + Vite buildável e responsiva, Firebase Auth Emulator e Firestore Emulator.
-- 2 empresas sintéticas, 6 usuários sintéticos; papéis manager/attendant/customer com regras server-side, ownership e leitura cross-tenant negativa.
-- Inbox com histórico persistente, base versionada, modo lexical com fontes e fallback seguro.
-- Propor/confirmar/cancelar reserva SIMULADA via Gateway Node local com token autenticado e transação, expiração, retry e auditoria.
-- Transferência humana interna, idempotente e auditada, sem notificar agentes reais.
-- Configurações versionadas por gestor, tela de equipe, contagens locais e trilha de auditoria visível só staff.
-- Pipelines CI separados e filtrados por caminhos para reduzir execução desnecessária.
+## QA real do HEAD de código
+- Domain Node 7/7 PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282407
+- Firestore Rules 13/13 PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282287
+- Gateway Auth/Emulator 14/14 PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282618
+- Worker Unit 13/13 PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282327
+- Worker REST/Emulator 4/4 PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282353
+- React TS Vite PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282371
+- Cloudflare cf build (no deploy) PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282396
+- E2E Playwright local 3/3 PASS: https://github.com/CristianoRFB/RFB-Agent/actions/runs/45179282459
 
-## QA real verificado
+## Falta para conclusão integral
+- Teste com Worker realmente implantado + Firebase staging isolado, sem risco de cobrança e com approval.
+- Semantic search / modelo IA com custo zero verificado; simulator lexical não é um agente LLM.
+- Integração com calendário externo e notificações; sem envio real hoje.
+- 58 telas completas e testadas (design, states, acessibilidade); onboarding e serviços administrativos de produção.
+- Controle de abuso/quotas, backups/restore, observabilidade, retenção e LGPD, IAM e rotação secrets.
 
-- Node domínio 7/7 PASS — https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617034
-- Firestore Rules 13/13 PASS — https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095616989
-- Gateway Auth/tenant/booking/handoff 10/10 PASS — https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095823085
-- React TypeScript + Vite PASS — https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617036
-- Playwright E2E integrado Auth/Firestore/Gateway 3/3 PASS — https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095857436
-- Playwright demo legado 3/3 PASS — https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617046
-- Todos os testes referem-se a dados SINTÉTICOS e ambiente local; não equivalem a homologação de produção.
-
-## Bloqueios para 90%
-
-- A produção NÃO está pronta. Falta adaptador Cloudflare Workers, projeto Firebase de homologação real, quota/custo, segredos, rate limiting e autorização expressa para publicar.
-- Busca semântica ou LLM real não implementada. O produto rotula respostas como SIMULADOR LEXICAL.
-- Sem agenda externa, entrega de notificações a funcionários nem transferência operacional a outro operador.
-- Design e QA completos de todas as 58 telas, proteção de dados reais, backup/restore, política de retenção, acessibilidade integral, LGPD e observabilidade pendentes.
-- 90% não atingido ou comprovado; NÃO calcular percentual artificial a partir da contagem de arquivos.
-
-## Próximo recorte seguro
-
-Construir backend compatível com Workers com idempotência transacional e autenticação apropriadas, verificar cotas Free, aprofundar T001–T058, auditar segurança, deixar homologação isolada. Não criar produção automaticamente.
+**Ainda não é sistema de produção, nem 90% comprovados.** Status: VERIFIED EMULATOR + BUILT CLOUDFLARE; NOT_RUN staging/prod.

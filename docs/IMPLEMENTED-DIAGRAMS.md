@@ -1,79 +1,56 @@
-# RFBAgent — diagramas do código implementado
+# RFBAgent — diagramas técnicos implementados (núcleo de teste, não produção)
 
-Esses diagramas descrevem **somente o código presente na branch do PR #1**. Não representam produção, um Worker Cloudflare implantado, nem IA generativa funcional.
-
-## C4 — contêineres do ambiente local
+## C4 — contêineres
 ```mermaid
 flowchart LR
-  C[Cliente ou funcionário de teste] --> SPA[React TypeScript Vite localhost:5173]
-  SPA --> AUTH[Firebase Auth Emulator 9099]
-  SPA --> FS[Firestore Emulator 8080]
-  SPA --> API[Node Gateway localhost:8787]
-  API --> AUTH
-  API --> FS
-  TEST[Playwright e Node tests] --> SPA
-  TEST --> FS
-  CLOUD[Cloudflare static assets alvo futuro] -. NÃO PUBLICADO .-> SPA
+  U[Cliente ou Funcionário] --> SPA[React TypeScript Vite]
+  SPA --> AUTH[Firebase Auth]
+  SPA --> DB[Firestore]
+  SPA --> EDGE[API Cloudflare Worker — SOMENTE BUILD]
+  EDGE --> GOOGLE[Google JWKS e OAuth]
+  EDGE --> REST[Firestore REST]
+  REST --> DB
+  LOCAL[Node Gateway LOCAL] --> EMU[Auth + Firestore Emulator]
+  SPA -. modo localhost .-> LOCAL
+  TEST[GitHub Actions] --> EMU
 ```
 
-## Domínio de dados por empresa
-```mermaid
-flowchart TD
-  CO[companies companyId] --> MB[members userId role active]
-  CO --> KB[knowledge docId version published]
-  CO --> CF[agentConfig default language tone mode]
-  CO --> CV[conversations conversationId customerUid status]
-  CV --> MS[messages senderUid customerUid source createdAt]
-  CV --> PR[proposals customerUid slot expiresAt status]
-  CV --> BK[bookings proposalId customerUid status]
-  CV --> AU[audit eventId actorUid type]
-```
-
-## Sequência — confirmação idempotente no gateway local
+## Agendamento serializado
 ```mermaid
 sequenceDiagram
-  actor U as Cliente de teste autenticado
-  participant UI as React SPA
-  participant GW as Gateway localhost
-  participant FA as Auth Emulator
-  participant DB as Firestore Emulator
-  U->>UI: Seleciona proposta e confirma
-  UI->>GW: POST /api/bookings/confirm (Bearer ID token, accepted=true)
-  GW->>FA: Verifica ID token
-  FA-->>GW: uid
-  GW->>DB: Transação: membro, conversa, proposta, booking
-  alt Proposta pendente, válida e pertencente ao uid
-    GW->>DB: Atualiza proposta, cria booking e audit atomico
-    DB-->>GW: Confirmado
-  else Booking já existe
-    DB-->>GW: Retry idempotente, sem novo evento
-  else Expirou ou sem acesso
-    DB-->>GW: Erro 403 ou 409 sem gravar
+  actor Cliente
+  participant UI as React
+  participant API as Gateway/Worker
+  participant DB as Firestore Transaction
+  Cliente->>UI: Confirma proposta explicitamente
+  UI->>API: Bearer token + accepted=true
+  API->>API: Verifica identidade e empresa
+  API->>DB: Lê member, conversa, proposta e booking
+  API->>DB: Lê lock company/slot_30min
+  alt Proposta válida e slot vazio
+    API->>DB: Cria lock, booking, audit e atualiza proposta
+    DB-->>API: Sucesso
+  else Indisponível
+    API->>DB: Rollback sem escrita
+    DB-->>API: 403 ou 409
   end
-  GW-->>UI: Resultado identificado como EMULATOR
+  API-->>UI: status + replay seguro
 ```
 
-## Máquina de estado: solicitação humana e agendamento
+## Handoff auditado
 ```mermaid
 stateDiagram-v2
   [*] --> open
-  open --> human: Solicitação autorizada e auditada
-  human --> human: Retry idempotente
-  open --> resolved: Ação de funcionário (parcial)
-  state Proposta {
-    [*] --> pending
-    pending --> confirmed: Confirmação aceita no gateway
-    pending --> cancelled: Cancelamento
-    pending --> expired: Prazo esgotado (verificado na ação)
-  }
+  open --> human: Cliente ou staff solicita via gateway
+  human --> resolved: Staff resolve via gateway
+  human --> human: Retry devolve replay
+  resolved --> resolved: Retry sem novo audit
 ```
 
-## Fronteiras de confiança
+## Regras de privilégio
+- Cliente não altera role, status, auditoria ou booking pelo Firebase SDK.
+- Client lê mensagens/booking filtrados por customerUid e empresa.
+- Staff lê fila e audit, resolve no gateway, não diretamente pelo Firestore.
+- A API Worker usa conta de serviço IAM e precisa validar manualmente papel e tenant; `RFB_WORKER_ENABLED=false` no build.
 
-- Frontend não pode atribuir roles, escrever audit ou criar booking diretamente.
-- Firestore Rules verificam membership, customerUid, papéis e campos aceitos; listagem de filhos do cliente exige filtro de ownership.
-- Gateway local verifica ID token e realiza ações explícitas e auditáveis em transações; não recebe chaves de produção.
-- Módulo lexical nunca aciona booking a partir de texto livre. Falha na recuperação oferece atendimento humano.
-- Cloudflare e Firebase reais são fronteiras futuras sem homologação ou produção autorizada.
-
-Fonte do escopo: docs/source/ESPECIFICACAO-RFB.txt e docs/source/DIAGRAMAS.md. Modelos originais preservados.
+Outros diagramas da especificação original: docs/source/DIAGRAMAS.md. Nenhum diagrama representa integração de produção que não ocorreu.

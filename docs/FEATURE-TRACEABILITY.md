@@ -1,28 +1,26 @@
-# Matriz F01–F12 e lacunas para a meta de 90%
+# RFBAgent — F01 a F12 (evidência vs lacunas)
 
-Base: docs/source/ESPECIFICACAO-RFB.txt e catálogo T001–T058 em docs/source/UX-DESIGN-AND-QA.md.
+Especificação original: docs/source/ESPECIFICACAO-RFB.txt; catálogo T001–T058 em docs/source/UX-DESIGN-AND-QA.md.
 
-| F | Implementação rastreada | Estado |
+| Recurso | Entrega real | Situação |
 | --- | --- | --- |
-| F01 Chat histórico | web/src/App.tsx; Firestore messages, Rules | Testado Emulator |
-| F02 Base versionada | knowledge com versionamento e gestor autorizado | Testado Emulator |
-| F03 Busca semântica com fonte | lexical com fonte em gateway, sem embeddings | PARCIAL, sem busca semântica |
-| F04 Respostas restritas à base | simulador lexical publica fonte ou fallback | Testado simulador, não IA |
-| F05 Transferência humana | endpoint idempotente `/api/conversations/handoff` + audit | Testado Emulator; não notifica pessoas |
-| F06 Confirmação de agendamento | endpoint explícito, transação, expiração, retry, auditoria | Testado Emulator; sem agenda externa |
-| F07 Ferramentas allowlist | rotas do gateway fixas e só local | Parcial; não há agente LLM |
-| F08 Auditoria | gateway escreve logs; painel equipe sob Rules | Testado Emulator; sem retenção prod |
-| F09 Simulador | lexical determinístico; demo antiga legada | Testado simulador |
-| F10 Configuração | idioma/tom versionados manager-only | Parcial; não afeta IA inexistente |
-| F11 Controle multiempresa | membership, roles, ownership, consulta filtrada | Testado Emulator |
-| F12 Indicadores | contagens de dados autorizados | Parcial; sem KPIs operacionais |
+| F01 Chat/histórico | UI, Firestore conversas/mensagens, perfis e E2E | PASS Emulator; não produção |
+| F02 Conhecimento versionado | Cadastro/edição incremental, publicação por gestor, fonte e versão | PASS Emulator |
+| F03 Busca semântica com fonte | Busca lexical com tokenização e fonte, sem embeddings | PARCIAL — semantic search AUSENTE |
+| F04 Resposta restrita à base | Apenas fonte publicada ou fallback sem fatos inventados | PASS simulador, não IA generativa |
+| F05 Transferência humana | Cliente solicita, staff vê fila e resolve; eventos auditados; sem push externo | PASS Emulator, notificações AUSENTES |
+| F06 Agendamento com confirmação | Slots exclusivos por empresa/30min, cancelamento, retry, token e auditoria; Worker REST e Node | PASS Emulator; agenda externa AUSENTE |
+| F07 Ferramentas allowlist | Seis rotas verificadas, sem executor genérico de comandos | PASS código/Emulator; sem LLM |
+| F08 Auditoria | Eventos server-only, timeline staff e status apenas via gateway | PASS Emulator; retenção/imutabilidade prod não homologadas |
+| F09 Simulador | LEXICAL_SIMULATOR determinístico com proveniência, sempre rotulado | PASS Emulator, não real AI |
+| F10 Idioma/configuração | Versão de idioma/tom por gestor, persistente; não modifica modelo IA inexistente | PARCIAL |
+| F11 Controle por empresa | Rules e IAM Worker verificam tenant/role/customerUid | PASS Emulator; staging real pendente |
+| F12 Analytics | Contagem por tenant de conversas, humanas, resolvidas, mensagens e propostas | PARCIAL; KPIs e relatórios históricos pendentes |
 
-## Telas
+## Estado das 58 telas
 
-React: autenticação, navegação, inbox, histórico, lista/conteúdo de conhecimento, gerência de fontes, proposta/confirmação local, equipe, indicadores, auditoria e configurações. Catálogo completo T001–T058 permanece de origem. Nenhuma declaração de 58 telas implementadas.
+A interface React dá suporte direto a login, shell, inbox, chat, base de conhecimento, proposta/revisão, confirmação de teste, fila humana, equipe, analytics parcial, settings e audit. Diversas entradas T001–T058 compartilham componentes e estados, mas não há validação integral de cada T-ID. Fonte de verdade preservada; não declarar 58 implementadas só por catálogo.
 
-## Pendências de alto peso
+## Critério para 90%
 
-Cloudflare Worker API compatível e revisão de segurança; Firebase real isolado; IA semântica sem cobrança; notificações humanas; métricas reais; QA e wireframes desktop/mobile para todas as telas aplicáveis; privacidade e retenção/backup; homologação produção.
-
-**90% do sistema não foi demonstrado**, portanto não há percentual confiável a publicar. Não use este código com dados reais até passar esses gates.
+Não há percentual confiável de prontidão de produção. Faltam Firebase staging, IA de fato sem serviço pago ou com franquia validada, notificação/calendário externo, tratamento de todos os estados do catálogo, privacidade/backup/retenção, observabilidade, rate limiting, segurança no Worker implantado e homologação real. **Meta de 90% NÃO demonstrada.**
