@@ -112,3 +112,27 @@ test("lexical simulator denies cross-tenant impersonation",async()=>{
  const r=await post("/api/knowledge/respond",{companyId:"alpha",conversationId:"conversation-a",question:"horário"},t);
  assert.equal(r.status,403);
 });
+
+test("handoff request writes one audit event and never notifies external staff",async()=>{
+ const id="conversation-handoff";
+ await db.doc("companies/alpha/conversations/"+id).set({companyId:"alpha",customerUid:"customerA",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
+ const t=await token("cliente@rfbagent.invalid");
+ const request={companyId:"alpha",conversationId:id};
+ const first=await post("/api/conversations/handoff",request,t);
+ assert.equal(first.status,200);assert.equal(first.body.replayed,false);assert.equal(first.body.notified,false);
+ const second=await post("/api/conversations/handoff",request,t);
+ assert.equal(second.status,200);assert.equal(second.body.replayed,true);
+ const snapshot=await db.doc("companies/alpha/conversations/"+id).get();
+ assert.equal(snapshot.get("status"),"human");
+ const entries=await db.collection("companies/alpha/conversations/"+id+"/audit").get();
+ assert.equal(entries.size,1);
+});
+test("handoff denies other customer and cross-company user",async()=>{
+ const id="conversation-no-handoff";
+ await db.doc("companies/alpha/conversations/"+id).set({companyId:"alpha",customerUid:"customerA",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
+ const other=await token("cliente2@rfbagent.invalid");
+ const cross=await token("cliente-b@rfbagent.invalid");
+ assert.equal((await post("/api/conversations/handoff",{companyId:"alpha",conversationId:id},other)).status,403);
+ assert.equal((await post("/api/conversations/handoff",{companyId:"alpha",conversationId:id},cross)).status,403);
+ assert.equal((await db.doc("companies/alpha/conversations/"+id).get()).get("status"),"open");
+});

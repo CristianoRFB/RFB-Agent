@@ -119,6 +119,27 @@ async function respondFromKnowledge(db,uid,body) {
  await batch.commit();
  return {messageId:message.id,source,mode:"LEXICAL_SIMULATOR",booked:false};
 }
+async function requestHumanHandoff(db,uid,body){
+ const companyId=validId(body?.companyId);
+ const conversationId=validId(body?.conversationId);
+ const base="companies/"+companyId;
+ const member=db.doc(base+"/members/"+uid),conversation=db.doc(base+"/conversations/"+conversationId);
+ const event=db.collection(base+"/conversations/"+conversationId+"/audit").doc();
+ return await db.runTransaction(async tx=>{
+  const [m,c]=await Promise.all([tx.get(member),tx.get(conversation)]);
+  if(!m.exists||m.get("active")!==true||!c.exists||c.get("companyId")!==companyId)
+   throw new HttpError("SEM_AUTORIZACAO",403);
+  const role=m.get("role");
+  if(!["customer","manager","attendant"].includes(role)
+      || (role==="customer"&&c.get("customerUid")!==uid))
+   throw new HttpError("SEM_AUTORIZACAO",403);
+  if(c.get("status")==="human")return {status:"human",replayed:true,notified:false};
+  if(c.get("status")!=="open")throw new HttpError("CONVERSA_INDISPONIVEL",409);
+  tx.update(conversation,{status:"human",updatedAt:Timestamp.now()});
+  tx.create(event,{type:"HUMAN_HANDOFF_REQUESTED",actorUid:uid,createdAt:Timestamp.now()});
+  return {status:"human",replayed:false,notified:false};
+ });
+}
 export function startGateway({port=8787}={}) {
  const {db,auth}=dbAndAuth();
  const server=createServer(async(req,res)=>{
@@ -133,11 +154,11 @@ export function startGateway({port=8787}={}) {
   const finish=(status,payload)=>{res.writeHead(status,headers);res.end(JSON.stringify(payload));};
   if(req.method==="OPTIONS"){finish(204,{});return;}
   if(req.method==="GET"&&req.url==="/health"){finish(200,{status:"emulator-only",production:false});return;}
-  if(req.method!=="POST"||!["/api/bookings/confirm","/api/proposals/cancel","/api/knowledge/respond"].includes(req.url)){finish(404,{error:"ROTA_INEXISTENTE"});return;}
+  if(req.method!=="POST"||!["/api/bookings/confirm","/api/proposals/cancel","/api/knowledge/respond","/api/conversations/handoff"].includes(req.url)){finish(404,{error:"ROTA_INEXISTENTE"});return;}
   try{
    const uid=await identity(req,auth);
    const body=await readBody(req);
-   const result=req.url==="/api/bookings/confirm"?await confirmBooking(db,uid,body):req.url==="/api/proposals/cancel"?await cancelProposal(db,uid,body):await respondFromKnowledge(db,uid,body);
+   const result=req.url==="/api/bookings/confirm"?await confirmBooking(db,uid,body):req.url==="/api/proposals/cancel"?await cancelProposal(db,uid,body):req.url==="/api/knowledge/respond"?await respondFromKnowledge(db,uid,body):await requestHumanHandoff(db,uid,body);
    finish(200,result);
   }catch(err){finish(err instanceof HttpError?err.status:500,{error:err instanceof HttpError?err.message:"FALHA_INTERNA"});}
  });

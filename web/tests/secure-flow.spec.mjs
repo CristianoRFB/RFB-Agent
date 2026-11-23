@@ -16,6 +16,8 @@ test("cliente autenticado: conversa persistente e proposta sem reserva",async({p
  await page.locator("#reply").fill("Qual o horário de atendimento?");
  await page.getByRole("button",{name:"Enviar",exact:true}).click();
  await expect(page.getByText("Qual o horário de atendimento?")).toBeVisible();
+ await page.getByRole("button",{name:"Solicitar humano"}).click();
+ await expect(page.getByText(/Transferência humana registrada no emulador/)).toBeVisible();
  await page.reload();
  await expect(page.getByRole("heading",{name:"Conversas"})).toBeVisible();
  await page.getByRole("button",{name:"Agendamentos"}).click();
