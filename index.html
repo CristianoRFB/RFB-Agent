@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#132234">
+<title>RFBAgent · Central de atendimento</title>
+<meta name="description" content="Demonstração local determinística do RFBAgent, sem inteligência artificial conectada.">
+<link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Pular para o conteúdo</a>
+<div class="layout">
+<aside class="sidebar">
+ <div class="brand"><span class="mark">R</span><span><strong>RFB<span>Agent</span></strong><small>WORKSPACE · DEMO</small></span></div>
+ <p class="aside-label">ESPAÇO DE TRABALHO</p>
+ <div class="tenant"><span class="tenant-icon">E</span><div>Empresa Exemplo<small>Dados 100% sintéticos</small></div></div>
+ <p class="aside-label">ATENDIMENTO</p>
+ <nav id="nav" aria-label="Seções do sistema">
+ <button class="nav-item active" data-tab="conversation" type="button"><span aria-hidden="true">▤</span> Conversas</button>
+ <button class="nav-item" data-tab="knowledge" type="button"><span aria-hidden="true">▦</span> Conhecimento</button>
+ <button class="nav-item" data-tab="bookings" type="button"><span aria-hidden="true">▣</span> Agendamentos</button>
+ <button class="nav-item" data-tab="audit" type="button"><span aria-hidden="true">≡</span> Auditoria</button>
+ </nav>
+ <div class="side-bottom"><span class="dot"></span> Simulador local<small>Sem IA, login ou serviço remoto</small></div>
+</aside>
+<main class="main" id="main">
+ <header class="header">
+  <div><span class="eyebrow">ATENDIMENTO / WORKSPACE</span><h1>Central de atendimento</h1><p>Histórico, fontes e ações confirmadas em uma única visão.</p></div>
+  <div class="header-right"><span class="mode">MODO DEMONSTRAÇÃO</span><span class="avatar">CL</span></div>
+ </header>
+ <p class="disclaimer"><strong>Ambiente demonstrativo.</strong> Respostas por busca lexical e regras, não IA real. Sem autenticação segura. Nada é enviado para fora do navegador. Não insira dados reais.</p>
+ <div class="stats">
+  <div class="stat"><span>Atendimentos</span><strong>01</strong><small>Conversa sintética</small></div>
+  <div class="stat"><span>Motor de resposta</span><strong>Local</strong><small>Sem API paga</small></div>
+  <div class="stat"><span>Agendamentos</span><strong id="count">00</strong><small>Somente simulados</small></div>
+ </div>
+ <div class="columns">
+  <section class="card chat" aria-label="Atendimento de Marina">
+   <header class="chat-head"><span class="contact">MC</span><div><small class="eyebrow">#CONV-001 · CLIENTE DEMO</small><h2>Marina Costa</h2><small id="status">Aberto · conversa fictícia</small></div><span class="chip">Ativo</span></header>
+   <div id="messages" class="messages" role="log" aria-label="Histórico de mensagens" aria-live="polite"></div>
+   <form id="form" class="composer"><label for="question">Mensagem da demonstração</label><div class="send-row"><input id="question" maxlength="500" required autocomplete="off" placeholder="Ex.: Qual é o horário de atendimento?"><button class="send" type="submit">Enviar <span aria-hidden="true">➜</span></button></div><small>Nenhuma mensagem cria agendamento automaticamente.</small></form>
+  </section>
+  <aside class="card side-card" aria-label="Ações e contexto">
+   <header class="side-head"><h2 id="context-title">Ações e contexto</h2><span class="little-pill">SIMULADOR</span></header>
+   <div id="context" class="context"></div>
+   <div class="side-foot"><button id="reset" type="button">Reiniciar demonstração</button></div>
+  </aside>
+ </div>
+ <p id="feedback" role="status" aria-live="polite" class="feedback"></p>
+ <footer>RFBAgent · Produto 08 do RFB Labs <span>Não publicado em produção</span></footer>
+</main>
+</div>
+<script type="module" src="./src/app.js"></script>
+</body>
+</html>
