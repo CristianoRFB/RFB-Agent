@@ -20,7 +20,8 @@ test("cliente autenticado: conversa persistente e proposta sem reserva",async({p
  await expect(page.getByRole("heading",{name:"Conversas"})).toBeVisible();
  await page.getByRole("button",{name:"Agendamentos"}).click();
  await expect(page.getByText("Confirmar reserva real — indisponível")).toBeVisible();
- await expect(page.getByText(/Agendamento real exige autorização/)).toBeVisible();
+ await expect(page.getByText(/O botão confirmar chama um gateway Node local/)).toBeVisible();
+ await expect(page.getByRole("button",{name:"Confirmar reserva real — indisponível"})).toBeDisabled();
  await page.screenshot({path:"test-results/emulator-customer.png",fullPage:true});
 });
 test("gestor vê equipe, cria documento e cliente não vê informação interna",async({page})=>{
