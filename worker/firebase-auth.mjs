@@ -20,7 +20,8 @@ export async function verifyFirebaseToken(header,projectId,{fetchImpl=fetch,now=
  const raw=header.slice(7);
  const parts=raw.split(".");
  if(parts.length!==3||parts.some(p=>!p))throw new AuthError("TOKEN_INVALIDO");
- const [head,payload]=parts.map(parsedPart);
+ const head=parsedPart(parts[0]);
+ const payload=parsedPart(parts[1]);
  if(head.alg!=="RS256"||typeof head.kid!=="string"||head.kid.length>150||!head.kid)throw new AuthError("TOKEN_INVALIDO");
  if(payload.aud!==projectId||payload.iss!=="https://securetoken.google.com/"+projectId
     ||typeof payload.sub!=="string"||!payload.sub||payload.sub.length>128
