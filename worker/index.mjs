@@ -2,13 +2,14 @@
 // default fails CLOSED. No deployment, billing, or service credentials included.
 import {verifyFirebaseToken,AuthError} from "./firebase-auth.mjs";
 import {FirestoreRest,StoreError} from "./firestore-rest.mjs";
-import {ActionError,confirmBooking,cancelBooking,cancelProposal,humanHandoff,sourceResponse} from "./actions.mjs";
+import {ActionError,confirmBooking,cancelBooking,cancelProposal,humanHandoff,resolveHandoff,sourceResponse} from "./actions.mjs";
 
 const ACTIONS=new Map([
  ["/api/bookings/confirm",confirmBooking],
  ["/api/bookings/cancel",cancelBooking],
  ["/api/proposals/cancel",cancelProposal],
  ["/api/conversations/handoff",humanHandoff],
+ ["/api/conversations/resolve",resolveHandoff],
  ["/api/knowledge/respond",sourceResponse]
 ]);
 const secureHeaders={"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff",

@@ -133,11 +133,9 @@ service cloud.firestore {
           && request.resource.data.status == 'open'
           && request.resource.data.createdAt == request.time
           && request.resource.data.updatedAt == request.time;
-        allow update: if isStaff(companyId)
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status','updatedAt'])
-          && request.resource.data.status in ['open','human','resolved']
-          && request.resource.data.updatedAt == request.time;
+        // State transitions must write a server-owned audit entry atomically.
+        // Even staff must use the authenticated gateway, never client writes.
+        allow update: if false;
         allow delete: if false;
 
         match /messages/{messageId} {

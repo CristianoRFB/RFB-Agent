@@ -140,6 +140,22 @@ export async function humanHandoff(store,uid,body,now=new Date()){
   return {status:"human",replayed:false,notified:false};
  });
 }
+export async function resolveHandoff(store,uid,body,now=new Date()){
+ validateBody(body,["companyId","conversationId"]);
+ const {base,conversation}=paths(body.companyId,body.conversationId);
+ return inTransaction(store,async (tx,commit)=>{
+  const [member,conv]=await store.batchGet([base+"/members/"+uid,conversation],tx);
+  checkScope(member,conv,body.companyId,uid);
+  if(!["manager","attendant"].includes(member.role))throw new ActionError("SEM_AUTORIZACAO",403);
+  if(conv.status==="resolved")return {status:"resolved",replayed:true,notified:false};
+  if(conv.status!=="human")throw new ActionError("CONVERSA_NAO_TRANSFERIDA",409);
+  await commit([
+   store.patch(conversation,{status:"resolved",updatedAt:now}),
+   store.create(conversation+"/audit/"+strId(),{type:"HUMAN_HANDOFF_RESOLVED",actorUid:uid,createdAt:now})
+  ]);
+  return {status:"resolved",replayed:false,notified:false};
+ });
+}
 function normalize(text){
  const stop=new Set(["qual","quais","que","como","para","com","uma","onde","posso","tenho","seus","suas","meu","minha","dos","das","os","as","no","na","de","do"]);
  return [...new Set(text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()

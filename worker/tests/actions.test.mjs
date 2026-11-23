@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {FirestoreRest,documentData,StoreError} from "../firestore-rest.mjs";
-import {confirmBooking,cancelBooking,cancelProposal,humanHandoff,sourceResponse} from "../actions.mjs";
+import {confirmBooking,cancelBooking,cancelProposal,humanHandoff,resolveHandoff,sourceResponse} from "../actions.mjs";
 import {createWorker} from "../index.mjs";
 const now=new Date("2026-11-23T13:00:00.000Z"),slot=new Date("2026-11-25T15:00:00.000Z"),expiry=new Date("2026-11-23T13:12:00.000Z");
 const root="companies/alpha";
@@ -12,6 +12,7 @@ function fixture(){
  const records=new Map([
  [root+"/members/customerA",{active:true,role:"customer"}],
  [root+"/members/customerB",{active:true,role:"customer"}],
+ [root+"/members/attendantA",{active:true,role:"attendant"}],
  ["companies/beta/members/customerZ",{active:true,role:"customer"}],
  [base+"/conv-a",{companyId:"alpha",customerUid:"customerA",status:"open"}],
  [base+"/conv-b",{companyId:"alpha",customerUid:"customerB",status:"open"}],
@@ -100,4 +101,16 @@ test("Worker HTTP fica fechado sem habilitação e restringe origin, tamanho e m
  assert.equal((await worker.fetch(new Request(api,{method:"GET"}),env)).status,404);
  const h=await worker.fetch(new Request("https://rfb-agent.example/api/health"),{});
  assert.equal(h.status,200);assert.equal((await h.json()).production,false);
+});
+
+test("resolução exige atendente e estado human, é idempotente e audita uma vez",async()=>{
+ const s=fixture();
+ await assert.rejects(()=>resolveHandoff(s,"customerA",{companyId:"alpha",conversationId:"conv-a"},now),/SEM_AUTORIZACAO/);
+ await assert.rejects(()=>resolveHandoff(s,"attendantA",{companyId:"alpha",conversationId:"conv-a"},now),/CONVERSA_NAO_TRANSFERIDA/);
+ await humanHandoff(s,"customerA",{companyId:"alpha",conversationId:"conv-a"},now);
+ const first=await resolveHandoff(s,"attendantA",{companyId:"alpha",conversationId:"conv-a"},now);
+ assert.equal(first.status,"resolved");assert.equal(first.replayed,false);
+ assert.equal((await resolveHandoff(s,"attendantA",{companyId:"alpha",conversationId:"conv-a"},now)).replayed,true);
+ const count=[...s.records.keys()].filter(p=>p.includes("/audit/")).length;
+ assert.equal(count,2);
 });

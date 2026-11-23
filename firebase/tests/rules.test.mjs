@@ -82,9 +82,9 @@ test("gerente versiona base; cliente não edita nem troca empresa",async()=>{
  await assertFails(updateDoc(kb("managerA"),{companyId:"beta",version:2,updatedAt:serverTimestamp()}));
  await assertSucceeds(updateDoc(kb("managerA"),{title:"Horários atualizados",version:2,updatedAt:serverTimestamp()}));
 });
-test("cliente não altera estado; atendente pode registrar handoff",async()=>{
+test("cliente e atendente não podem alterar status sem auditoria do gateway",async()=>{
  await assertFails(updateDoc(conv("customerA"),{status:"resolved",updatedAt:serverTimestamp()}));
- await assertSucceeds(updateDoc(conv("attendantA"),{status:"human",updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(conv("attendantA"),{status:"human",updatedAt:serverTimestamp()}));
  await assertFails(updateDoc(conv("attendantA"),{customerUid:"customerB",updatedAt:serverTimestamp()}));
 });
 test("proposta pendente permitida, confirmação forjada e reservas bloqueadas",async()=>{

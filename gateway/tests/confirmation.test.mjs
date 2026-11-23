@@ -171,3 +171,27 @@ test("a reserva bloqueada em outra empresa não expõe vaga a um cliente cruzado
  const t=await token("cliente-b@rfbagent.invalid");
  assert.equal((await post("/api/bookings/cancel",{companyId:"alpha",conversationId:"conversation-a",proposalId:"valid-prop",accepted:true},t)).status,403);
 });
+
+test("staff resolve handoff with exactly one audit event; customer cannot resolve",async()=>{
+ const id="conversation-resolve-gateway";
+ await db.doc("companies/alpha/conversations/"+id).set({companyId:"alpha",customerUid:"customerA",status:"human",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
+ const attendant=await token("atendente@rfbagent.invalid");
+ const customer=await token("cliente@rfbagent.invalid");
+ const wrongTenant=await token("gestor2@rfbagent.invalid");
+ const body={companyId:"alpha",conversationId:id};
+ assert.equal((await post("/api/conversations/resolve",body,customer)).status,403);
+ assert.equal((await post("/api/conversations/resolve",body,wrongTenant)).status,403);
+ const first=await post("/api/conversations/resolve",body,attendant);
+ assert.equal(first.status,200);assert.equal(first.body.replayed,false);
+ const retry=await post("/api/conversations/resolve",body,attendant);
+ assert.equal(retry.status,200);assert.equal(retry.body.replayed,true);
+ const events=await db.collection("companies/alpha/conversations/"+id+"/audit").get();
+ assert.equal(events.size,1);
+ assert.equal((await db.doc("companies/alpha/conversations/"+id).get()).get("status"),"resolved");
+});
+test("staff cannot resolve open conversation without explicit handoff",async()=>{
+ const id="conversation-open-not-resolved";
+ await db.doc("companies/alpha/conversations/"+id).set({companyId:"alpha",customerUid:"customerA",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
+ const attendant=await token("atendente@rfbagent.invalid");
+ assert.equal((await post("/api/conversations/resolve",{companyId:"alpha",conversationId:id},attendant)).status,409);
+});

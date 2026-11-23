@@ -33,6 +33,7 @@ batch.set(db.doc("companies/alpha/knowledge/private"),{companyId:"alpha",title:"
 batch.set(db.doc("companies/alpha/agentConfig/default"),{companyId:"alpha",language:"pt-BR",tone:"neutro",mode:"LEXICAL_SIMULATOR",version:1,updatedAt:Timestamp.now()});
 batch.set(db.doc("companies/beta/agentConfig/default"),{companyId:"beta",language:"pt-BR",tone:"neutro",mode:"LEXICAL_SIMULATOR",version:1,updatedAt:Timestamp.now()});
 batch.set(db.doc("companies/alpha/conversations/conversation-a"),{companyId:"alpha",customerUid:"customerA",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
+batch.set(db.doc("companies/alpha/conversations/queue-synthetic"),{companyId:"alpha",customerUid:"customerB",status:"human",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
 batch.set(db.doc("companies/beta/conversations/conversation-b"),{companyId:"beta",customerUid:"customerZ",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
 await batch.commit();
 console.log("SEED_EMULATOR_OK: 2 empresas, 6 contas sintéticas, 3 documentos, 2 conversas. NENHUM dado real.");
