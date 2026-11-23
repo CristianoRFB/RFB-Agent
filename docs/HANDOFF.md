@@ -18,3 +18,6 @@ Actor de teste controlado pelo browser, localStorage adulterável, auditoria loc
 
 ## Retomar
 rfb:resume -> buscar HEAD atual, todos Issues e PRs (review/checks), fonte specs, docs/rfb/STATE.json, executar testes e QA com browser. S002: backend Auth/Firestore Rules no emulador, testes cross-tenant e confirmação verificável server-side. Depois migrar a UI para React+TypeScript+Vite e revisar 58 T-IDs conforme pertinência.
+
+## CI comprovado após o checkpoint inicial
+GitHub Actions https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953 executou e passou 7/7 testes em Node 22, sem falhas, além de checagens de sintaxe. Commit testado: 9cc7c8e69b4bc40d4709f2899fbd84315608fc3a. Browser/Firestore/produção não foram testados.

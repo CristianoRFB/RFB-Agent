@@ -47,12 +47,18 @@
       "notes": "Mesma fonte do domínio em isolate V8; exports transformados em definições locais e structuredClone substituído por clone JSON. NÃO equivale a Node CI ou teste E2E."
     },
     "nodeUnitTests": {
-      "status": "NOT_RUN",
-      "casesWritten": 7
+      "status": "PASS",
+      "casesWritten": 7,
+      "casesPassed": 7,
+      "casesFailed": 0,
+      "environment": "GitHub Actions / Node.js 22.23.5",
+      "testedCommit": "9cc7c8e69b4bc40d4709f2899fbd84315608fc3a",
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953"
     },
     "ci": {
-      "status": "NOT_RUN",
-      "notes": "Nenhuma execução disponível na verificação anterior à criação do PR."
+      "status": "PASS",
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953",
+      "details": "Test job success; node --test tests/*.test.mjs and node --check src/domain.mjs/src/app.js"
     },
     "browser": {
       "status": "NOT_RUN"

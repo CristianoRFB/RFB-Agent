@@ -9,3 +9,7 @@
 - **GitHub:** docs commit d72f89c, implementação a34af92. PR draft #1 aberto e não mesclado.
 - **Custos:** nenhuma cobrança, projeto Firebase, Cloudflare Worker ou produção criados.
 - **Próxima fatia:** executar Node/browser E2E e planejar autenticação/autorização Firebase Emulator com prova negativa.
+
+## Evidência adicional (GitHub Actions)
+- CI no commit 9cc7c8e: **PASS 7/7**, 0 FAIL, Node.js 22.23.5, sintaxe dos arquivos domain.mjs e app.js **PASS**. Execução https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953
+- QA browser, Auth Firebase Rules, produção e Cloudflare continuam NOT_RUN.
