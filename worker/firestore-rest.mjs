@@ -122,6 +122,24 @@ export class FirestoreRest {
   if(!Array.isArray(writes)||writes.length<1||writes.length>20)throw new StoreError("ESCRITAS_INVALIDAS",400);
   return JSON.parse(await this.request("POST",":commit",{transaction,writes}));
  }
+ async publicKnowledge(companyPath,transaction,limit=50){
+  const path=validPath(companyPath);
+  if(!/^companies\/[A-Za-z0-9_-]+$/.test(path))throw new StoreError("CAMINHO_INVALIDO",400);
+  const bounded=Math.min(50,Math.max(1,Math.floor(limit)));
+  const output=await this.request("POST","/"+path+":runQuery",{
+   structuredQuery:{
+    from:[{collectionId:"knowledge"}],
+    where:{fieldFilter:{field:{fieldPath:"published"},op:"EQUAL",value:{booleanValue:true}}},
+    limit:bounded
+   },
+   transaction
+  });
+  let rows;
+  try {rows=output.trim().startsWith("[")?JSON.parse(output):output.split(/\r?\n/).filter(Boolean).map(l=>JSON.parse(l));}
+  catch {throw new StoreError("RESPOSTA_FIRESTORE_INVALIDA");}
+  return rows.filter(x=>x.document).map(x=>documentData(x.document)).filter(x=>x.published===true);
+ }
+
  create(path,data){
   return {update:{name:this.name(path),fields:firestoreFields(data)},currentDocument:{exists:false}};
  }
