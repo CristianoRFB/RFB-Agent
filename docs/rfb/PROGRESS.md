@@ -1,6 +1,11 @@
-# Progresso 22/11/2026
+# Progresso RFBAgent — 22/11/2026
 
-- Repositório inicialmente vazio; main criada com README em f88e2039b9a84e7c7d18dbf7fb26b86436174bda.
-- Recuperadas as cinco especificações versionadas do método (PR #4), sem inventar requisitos.
-- Próxima fatia: demonstrador local com busca lexical versionada, confirmação explícita e testes negativos.
-- Sem produção, IA real, Firebase configurado ou Cloudflare alterado.
+- **S001:** Source Pack do produto 08 transportado do RFB Method PR #4, 5 documentos intactos. G0 triado em repo vazio; arquitetura e riscos anotados.
+- **S003:** Busca lexical + conhecimento versionado e fonte, falha segura (sem IA/RAG real).
+- **S004:** UI estática com histórico local, proposta/confirmar/cancelar, expiração de 15min, retry idempotente na mesma instância e registro sintético.
+- **S005:** transferência humana somente local, sem notificação.
+- **QA:** 7 testes Node escritos, ainda NOT_RUN; 6 verificações manuais de função PASS em isolate V8 com clone substituto. CI/browser/Rules/deploy NOT_RUN.
+- **S002 BLOQUEADO:** autenticação real, Firestore Rules e controle cross-tenant no servidor. Guardas JS demonstrativas NÃO protegem dados reais.
+- **GitHub:** docs commit d72f89c, implementação a34af92. PR draft #1 aberto e não mesclado.
+- **Custos:** nenhuma cobrança, projeto Firebase, Cloudflare Worker ou produção criados.
+- **Próxima fatia:** executar Node/browser E2E e planejar autenticação/autorização Firebase Emulator com prova negativa.

@@ -3,19 +3,74 @@
   "date": "2026-11-22",
   "repository": "CristianoRFB/RFB-Agent",
   "branch": "feature/rfb-agent-g1-vertical-simulator",
-  "head": "PENDING_COMMIT",
-  "stage": "STARTER_IMPORTED",
+  "specificationSource": "CristianoRFB/rfb-method-gpt PR #4 portfolio/projetos/08-rfbagent/",
+  "originalSourceFiles": 5,
+  "baseline": "f88e2039b9a84e7c7d18dbf7fb26b86436174bda",
+  "documentationCommit": "d72f89ccb4351c36ee3490e216ebc3c2e32b1329",
+  "implementationCommit": "a34af92533a3e789eab3a31a47fb090fe002fc8a",
+  "pr": "https://github.com/CristianoRFB/RFB-Agent/pull/1",
+  "stage": "IMPLEMENTADO_NAO_HOMOLOGADO",
+  "environment": "STATIC_BROWSER_LOCAL_ONLY",
   "production": "NOT_RUN",
+  "costGoalBRLMonthly": 0,
+  "tasks": [
+    {
+      "id": "S001",
+      "status": "REVIEW",
+      "acceptance": "Arquitetura, ameaças, docs source importados"
+    },
+    {
+      "id": "S002",
+      "status": "BLOCKED",
+      "acceptance": "Firebase Auth/Firestore Rules e RBAC/tenancy reais, não apenas no client"
+    },
+    {
+      "id": "S003",
+      "status": "IMPLEMENTADO_NAO_HOMOLOGADO",
+      "acceptance": "Busca LEXICAL versionada com fonte e fallback seguro"
+    },
+    {
+      "id": "S004",
+      "status": "IMPLEMENTADO_NAO_HOMOLOGADO",
+      "acceptance": "Agendamento SIMULADO com confirmação explícita, expiração, idempotência local"
+    },
+    {
+      "id": "S005",
+      "status": "BACKLOG",
+      "acceptance": "Handoff real, analytics e configuração"
+    }
+  ],
   "qa": {
-    "unit": "NOT_RUN",
-    "browser": "NOT_RUN",
-    "firebase": "NOT_RUN"
+    "v8DomainSmoke": {
+      "status": "PASS",
+      "checks": 6,
+      "notes": "Mesma fonte do domínio em isolate V8; exports transformados em definições locais e structuredClone substituído por clone JSON. NÃO equivale a Node CI ou teste E2E."
+    },
+    "nodeUnitTests": {
+      "status": "NOT_RUN",
+      "casesWritten": 7
+    },
+    "ci": {
+      "status": "NOT_RUN",
+      "notes": "Nenhuma execução disponível na verificação anterior à criação do PR."
+    },
+    "browser": {
+      "status": "NOT_RUN"
+    },
+    "firebaseRules": {
+      "status": "NOT_RUN"
+    },
+    "deploy": {
+      "status": "NOT_RUN"
+    }
   },
-  "tasks": {
-    "S001": "IN_PROGRESS",
-    "S002": "BLOCKED_AUTH_BACKEND",
-    "S003": "PLANNED_LEXICAL_DEMO",
-    "S004": "PLANNED_SIMULATED_BOOKING",
-    "S005": "BACKLOG"
-  }
+  "risks": [
+    "AV-01 cliente controla actor",
+    "AV-02 localStorage não impõe autorização multi-tenant",
+    "AV-03 reserva confirmada sem backend não é real",
+    "AV-04 auditoria local mutável",
+    "AV-05 busca lexical não é RAG/LLM",
+    "AV-06 concorrência não resolvida server-side"
+  ],
+  "nextSlice": "Executar Node unit tests e browser real; corrigir regressões; adicionar Firebase Auth + Firestore Emulator e Rules com testes cross-tenant sem produção ou dados reais."
 }
