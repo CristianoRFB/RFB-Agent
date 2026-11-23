@@ -104,3 +104,17 @@ test("cliente não escreve auditoria e não altera mensagens",async()=>{
  await assertSucceeds(setDoc(x,{senderUid:"customerA",senderRole:"customer",text:"Olá",createdAt:serverTimestamp()}));
  await assertFails(updateDoc(x,{text:"forjado"}));
 });
+
+test("configuração versionada do simulador é exclusiva do gestor",async()=>{
+ const managerDoc=doc(dbFor("managerA"),"companies/alpha/agentConfig/default");
+ await assertSucceeds(setDoc(managerDoc,{companyId:"alpha",language:"pt-BR",tone:"neutro",mode:"LEXICAL_SIMULATOR",version:1,updatedAt:serverTimestamp()}));
+ await assertSucceeds(updateDoc(managerDoc,{tone:"formal",version:2,updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(managerDoc,{mode:"IA_PAGA",version:3,updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(managerDoc,{companyId:"beta",version:3,updatedAt:serverTimestamp()}));
+ const customerDoc=doc(dbFor("customerA"),"companies/alpha/agentConfig/default");
+ await assertFails(getDoc(customerDoc));
+ await assertFails(updateDoc(customerDoc,{tone:"acolhedor",version:3,updatedAt:serverTimestamp()}));
+ const attendantDoc=doc(dbFor("attendantA"),"companies/alpha/agentConfig/default");
+ await assertSucceeds(getDoc(attendantDoc));
+ await assertFails(updateDoc(attendantDoc,{tone:"acolhedor",version:3,updatedAt:serverTimestamp()}));
+});

@@ -30,6 +30,8 @@ for(const user of users)batch.set(db.doc("companies/"+user.company+"/members/"+u
 batch.set(db.doc("companies/alpha/knowledge/hours"),{companyId:"alpha",title:"Horário de atendimento",body:"Atendemos de segunda a sexta-feira, das 9h às 18h.",version:1,published:true,updatedAt:Timestamp.now()});
 batch.set(db.doc("companies/alpha/knowledge/address"),{companyId:"alpha",title:"Endereço (fictício)",body:"Rua Exemplo, 100. Atendimento somente com agendamento confirmado.",version:1,published:true,updatedAt:Timestamp.now()});
 batch.set(db.doc("companies/alpha/knowledge/private"),{companyId:"alpha",title:"Procedimento interno",body:"Exemplo interno para gestor e atendente, não público.",version:1,published:false,updatedAt:Timestamp.now()});
+batch.set(db.doc("companies/alpha/agentConfig/default"),{companyId:"alpha",language:"pt-BR",tone:"neutro",mode:"LEXICAL_SIMULATOR",version:1,updatedAt:Timestamp.now()});
+batch.set(db.doc("companies/beta/agentConfig/default"),{companyId:"beta",language:"pt-BR",tone:"neutro",mode:"LEXICAL_SIMULATOR",version:1,updatedAt:Timestamp.now()});
 batch.set(db.doc("companies/alpha/conversations/conversation-a"),{companyId:"alpha",customerUid:"customerA",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
 batch.set(db.doc("companies/beta/conversations/conversation-b"),{companyId:"beta",customerUid:"customerZ",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
 await batch.commit();

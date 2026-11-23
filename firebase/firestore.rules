@@ -55,6 +55,22 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time;
     }
 
+    function validAgentConfig(companyId) {
+      return request.resource.data.keys().hasOnly([
+          'companyId','language','tone','mode','version','updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'companyId','language','tone','mode','version','updatedAt'
+        ])
+        && request.resource.data.companyId == companyId
+        && request.resource.data.language in ['pt-BR','en-US','es-ES']
+        && request.resource.data.tone in ['neutro','formal','acolhedor']
+        && request.resource.data.mode == 'LEXICAL_SIMULATOR'
+        && request.resource.data.version is int
+        && request.resource.data.version >= 1
+        && request.resource.data.updatedAt == request.time;
+    }
+
     match /companies/{companyId} {
       allow get: if isMember(companyId);
       allow list, create, update, delete: if false;
@@ -78,6 +94,19 @@ service cloud.firestore {
           && validKnowledge(companyId)
           && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['title','body','published','version','updatedAt'])
+          && request.resource.data.version == resource.data.version + 1;
+        allow delete: if false;
+      }
+
+      match /agentConfig/{configId} {
+        allow get, list: if isStaff(companyId);
+        allow create: if isManager(companyId)
+          && validAgentConfig(companyId)
+          && request.resource.data.version == 1;
+        allow update: if isManager(companyId)
+          && validAgentConfig(companyId)
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['language','tone','version','updatedAt'])
           && request.resource.data.version == resource.data.version + 1;
         allow delete: if false;
       }
