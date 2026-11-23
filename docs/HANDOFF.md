@@ -21,3 +21,10 @@ rfb:resume -> buscar HEAD atual, todos Issues e PRs (review/checks), fonte specs
 
 ## CI comprovado após o checkpoint inicial
 GitHub Actions https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953 executou e passou 7/7 testes em Node 22, sem falhas, além de checagens de sintaxe. Commit testado: 9cc7c8e69b4bc40d4709f2899fbd84315608fc3a. Browser/Firestore/produção não foram testados.
+
+## Browser QA (evidência adicional)
+- Commit testado 5af49046: **PASS 3/3 Playwright Chromium**, desktop 1440px, mobile 390px e teclado. Recarregamento, fontes, confirmação separada, auditoria e prevenção de HTML injection testados.
+- Screenshot sintético desktop/mobile gerado em artifact 'rfbagent-browser-evidence' (não inspecionado visualmente nesta sessão).
+- Execução https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299566
+- Node CI 7/7 PASS também em https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299463
+- Continuação obrigatória: Firebase Rules/Emulator (NÃO TESTADO), QA de contraste/leitor de tela (NÃO TESTADO), revisão humana de screenshots e deploy (NÃO EXECUTADO).

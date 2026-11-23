@@ -13,3 +13,10 @@
 ## Evidência adicional (GitHub Actions)
 - CI no commit 9cc7c8e: **PASS 7/7**, 0 FAIL, Node.js 22.23.5, sintaxe dos arquivos domain.mjs e app.js **PASS**. Execução https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953
 - QA browser, Auth Firebase Rules, produção e Cloudflare continuam NOT_RUN.
+
+## Browser QA (evidência adicional)
+- Commit testado 5af49046: **PASS 3/3 Playwright Chromium**, desktop 1440px, mobile 390px e teclado. Recarregamento, fontes, confirmação separada, auditoria e prevenção de HTML injection testados.
+- Screenshot sintético desktop/mobile gerado em artifact 'rfbagent-browser-evidence' (não inspecionado visualmente nesta sessão).
+- Execução https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299566
+- Node CI 7/7 PASS também em https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299463
+- Continuação obrigatória: Firebase Rules/Emulator (NÃO TESTADO), QA de contraste/leitor de tela (NÃO TESTADO), revisão humana de screenshots e deploy (NÃO EXECUTADO).

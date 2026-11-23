@@ -26,7 +26,7 @@ Abrir http://localhost:4173 no navegador. Importações JavaScript precisam de s
     node --check src/domain.mjs
     node --check src/app.js
 
-CI **PASS 7/7** no commit 9cc7c8e, com sintaxe validada. Evidência: [GitHub Actions run 45092093953](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953) e [relatório QA](qa/reports/runs/RUN-20261122-G1-CI.md). Teste de navegador, Firestore Rules, segurança multi-tenant no servidor e implantação **NOT_RUN**.
+CI **PASS 7/7** no commit 9cc7c8e, com sintaxe validada. Evidência: [GitHub Actions run 45092093953](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953) e [relatório QA](qa/reports/runs/RUN-20261122-G1-CI.md). Playwright Chromium **PASS 3/3** em [GitHub Actions Browser QA](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299566), com imagens sintéticas no artifact. Firestore Rules, segurança multi-tenant no servidor, auditoria visual completa e implantação **NOT_RUN**.
 
 ## Arquitetura e próximas fatias
 

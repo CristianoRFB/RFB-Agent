@@ -51,17 +51,28 @@
       "casesWritten": 7,
       "casesPassed": 7,
       "casesFailed": 0,
-      "environment": "GitHub Actions / Node.js 22.23.5",
-      "testedCommit": "9cc7c8e69b4bc40d4709f2899fbd84315608fc3a",
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953"
+      "environment": "GitHub Actions Node.js 22",
+      "testedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311",
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299463"
     },
     "ci": {
       "status": "PASS",
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953",
-      "details": "Test job success; node --test tests/*.test.mjs and node --check src/domain.mjs/src/app.js"
+      "details": "7 Node unit tests and 3 Playwright E2E checks; browser screenshots archived",
+      "testedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311"
     },
     "browser": {
-      "status": "NOT_RUN"
+      "status": "PASS",
+      "cases": 3,
+      "passed": 3,
+      "failed": 0,
+      "environment": "GitHub Actions Ubuntu / Playwright Chromium",
+      "viewportEvidence": [
+        "1440x900 desktop",
+        "390x844 mobile",
+        "keyboard"
+      ],
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299566",
+      "screenshots": "artifact rfbagent-browser-evidence ID 14780919544 (synthetic data, not yet visually reviewed)"
     },
     "firebaseRules": {
       "status": "NOT_RUN"
@@ -78,5 +89,6 @@
     "AV-05 busca lexical não é RAG/LLM",
     "AV-06 concorrência não resolvida server-side"
   ],
-  "nextSlice": "Executar Node unit tests e browser real; corrigir regressões; adicionar Firebase Auth + Firestore Emulator e Rules com testes cross-tenant sem produção ou dados reais."
+  "nextSlice": "Implement Firebase Auth and Firestore Rules with realistic cross-tenant and confirmation security tests in isolated Emulator. Keep demo-only until authorized; review captured screenshots, accessibility and cost.",
+  "browserTestedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311"
 }
