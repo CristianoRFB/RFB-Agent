@@ -22,7 +22,7 @@ test("cliente autenticado: conversa persistente e proposta sem reserva",async({p
  await expect(page.getByRole("heading",{name:"Conversas"})).toBeVisible();
  await page.getByRole("button",{name:"Agendamentos"}).click();
  await expect(page.getByText("Confirmar reserva real — indisponível")).toBeVisible();
- await expect(page.getByText(/O botão confirmar chama um gateway Node local/)).toBeVisible();
+ await expect(page.getByText(/O gateway autorizado de teste garante um agendamento/)).toBeVisible();
  await expect(page.getByRole("button",{name:"Confirmar reserva real — indisponível"})).toBeDisabled();
  await page.screenshot({path:"test-results/emulator-customer.png",fullPage:true});
 });
@@ -30,7 +30,7 @@ test("gestor vê equipe, cria documento e cliente não vê informação interna"
  await enter(page,"gestor@rfbagent.invalid");
  await page.getByRole("button",{name:"Fila humana"}).click();
  await expect(page.getByText("Fila de atendimentos humanos")).toBeVisible();
- await page.getByRole("button",{name:"Marcar resolvido"}).click();
+ await page.getByRole("button",{name:"Marcar resolvido"}).first().click();
  await expect(page.getByText(/Atendimento resolvido e auditado/)).toBeVisible();
  await page.getByRole("button",{name:"Equipe"}).click();
  await expect(page.getByText("managerA")).toBeVisible();
