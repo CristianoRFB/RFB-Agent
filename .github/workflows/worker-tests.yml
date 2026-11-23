@@ -1,0 +1,25 @@
+name: Worker edge security tests (no deployment)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'worker/**'
+      - '.github/workflows/worker-tests.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: WebCrypto JWT and REST edge tests (no external credentials)
+        run: node --test worker/tests/*.test.mjs
+      - name: Syntax check worker modules
+        run: find worker -name '*.mjs' -print0 | xargs -0 -n 1 node --check
