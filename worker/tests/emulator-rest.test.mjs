@@ -40,6 +40,18 @@ before(async()=>{
   customerUid:"customerB",slot:fixed,expiresAt:Timestamp.fromMillis(Date.now()+600000),status:"pending",createdAt:Timestamp.now()
  });
 });
+test("diagnóstico: commit REST básico sem leitura prévia, depois com leitura em transaction",async()=>{
+ const path="companies/alpha/diagnostics/rest-transaction";
+ await db.doc(path).set({status:"pending",attempt:0});
+ const noRead=await edge.begin();
+ await edge.commit(noRead,[edge.patch(path,{status:"standalone"})]);
+ assert.equal((await db.doc(path).get()).get("status"),"standalone");
+ const withRead=await edge.begin();
+ const [item]=await edge.batchGet([path],withRead);
+ assert.equal(item.status,"standalone");
+ await edge.commit(withRead,[edge.patch(path,{status:"after_read"})]);
+ assert.equal((await db.doc(path).get()).get("status"),"after_read");
+});
 test("Firestore REST integra assinatura de transação, reserva exclusiva e cancelamento",async()=>{
  const a={companyId:"alpha",conversationId:convoA,proposalId:"edge-a",accepted:true};
  const b={companyId:"alpha",conversationId:convoB,proposalId:"edge-b",accepted:true};
