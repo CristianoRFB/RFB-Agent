@@ -82,6 +82,43 @@ async function cancelProposal(db,uid,body) {
   return {status:"cancelled",replayed:false};
  });
 }
+function searchTokens(input){
+ const stop=new Set(["qual","quais","que","como","para","com","uma","onde","posso","tenho","seus","suas","meu","minha","dos","das","os","as","no","na","de","do"]);
+ return [...new Set(String(input).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>2&&!stop.has(x)))];
+}
+async function respondFromKnowledge(db,uid,body) {
+ const companyId=validId(body?.companyId),conversationId=validId(body?.conversationId);
+ const question=typeof body?.question==="string"?body.question.trim():"";
+ if(!question||question.length>500)throw new HttpError("PERGUNTA_INVALIDA",400);
+ const base="companies/"+companyId;
+ const [m,c]=await Promise.all([
+  db.doc(base+"/members/"+uid).get(),
+  db.doc(base+"/conversations/"+conversationId).get()
+ ]);
+ if(!m.exists||m.get("active")!==true||!c.exists||c.get("companyId")!==companyId)throw new HttpError("SEM_AUTORIZACAO",403);
+ const role=m.get("role");
+ if(!["customer","attendant","manager"].includes(role))throw new HttpError("SEM_AUTORIZACAO",403);
+ if(role==="customer"&&c.get("customerUid")!==uid)throw new HttpError("SEM_AUTORIZACAO",403);
+ // Only customer-public documents are used in automated replies (even when staff requests).
+ const snap=await db.collection(base+"/knowledge").where("published","==",true).limit(50).get();
+ const tokens=searchTokens(question);
+ const ranked=snap.docs.map(d=>{
+  const data=d.data(),words=searchTokens(String(data.title)+" "+String(data.body));
+  const score=tokens.reduce((n,t)=>n+(words.some(w=>w===t||(t.length>4&&w.startsWith(t)))?1:0),0);
+  return {doc:d,score};
+ }).sort((a,b)=>b.score-a.score);
+ const match=ranked[0]?.score>0?ranked[0].doc:null;
+ const source=match?{id:match.id,title:match.get("title"),version:match.get("version")}:null;
+ const response=match?"Conforme a base de conhecimento: "+String(match.get("body")).slice(0,800)
+  :"Não encontrei um fato verificável na base. Solicite transferência para atendimento humano.";
+ const message=db.collection(base+"/conversations/"+conversationId+"/messages").doc();
+ const audit=db.collection(base+"/conversations/"+conversationId+"/audit").doc();
+ const batch=db.batch();
+ batch.create(message,{senderUid:"rfb-simulator",senderRole:"simulator",text:response,source,createdAt:Timestamp.now()});
+ batch.create(audit,{type:"LEXICAL_RESPONSE_WITH_PROVENANCE",actorUid:uid,sourceId:source?.id??null,createdAt:Timestamp.now()});
+ await batch.commit();
+ return {messageId:message.id,source,mode:"LEXICAL_SIMULATOR",booked:false};
+}
 export function startGateway({port=8787}={}) {
  const {db,auth}=dbAndAuth();
  const server=createServer(async(req,res)=>{
@@ -96,11 +133,11 @@ export function startGateway({port=8787}={}) {
   const finish=(status,payload)=>{res.writeHead(status,headers);res.end(JSON.stringify(payload));};
   if(req.method==="OPTIONS"){finish(204,{});return;}
   if(req.method==="GET"&&req.url==="/health"){finish(200,{status:"emulator-only",production:false});return;}
-  if(req.method!=="POST"||!["/api/bookings/confirm","/api/proposals/cancel"].includes(req.url)){finish(404,{error:"ROTA_INEXISTENTE"});return;}
+  if(req.method!=="POST"||!["/api/bookings/confirm","/api/proposals/cancel","/api/knowledge/respond"].includes(req.url)){finish(404,{error:"ROTA_INEXISTENTE"});return;}
   try{
    const uid=await identity(req,auth);
    const body=await readBody(req);
-   const result=req.url==="/api/bookings/confirm"?await confirmBooking(db,uid,body):await cancelProposal(db,uid,body);
+   const result=req.url==="/api/bookings/confirm"?await confirmBooking(db,uid,body):req.url==="/api/proposals/cancel"?await cancelProposal(db,uid,body):await respondFromKnowledge(db,uid,body);
    finish(200,result);
   }catch(err){finish(err instanceof HttpError?err.status:500,{error:err instanceof HttpError?err.message:"FALHA_INTERNA"});}
  });
