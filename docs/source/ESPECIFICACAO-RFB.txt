@@ -1,0 +1,234 @@
+# RFB — Especificação de marca atualizada; fonte histórica original arquivada separadamente.
+
+RFBAGENT — ESPECIFICAÇÃO COMPLETA
+======================================================================
+Status: concepção. Produto: RFBAgent. Segmento: Assistente de atendimento com IA. Slogan: Atendimento que entende e executa com permissão.
+
+O PROBLEMA
+Pequenas empresas perdem oportunidades quando atendimento e agendamento ficam manuais e sem histórico.
+
+QUEM USA
+Empresários, recepcionistas e clientes.
+
+PROPOSTA DE VALOR
+Cliente pede horário; agente consulta a agenda e só cria a reserva após confirmação explícita.
+
+IDENTIDADE DO DESIGN
+Inbox de atendimento, chat com IA e ações/agenda lado a lado.
+
+STACK
+React + TypeScript + Vite; Cloudflare Workers / Static Assets; Firebase Auth / Firestore; ferramentas opcionais conforme módulo.
+
+ORIENTAÇÃO DE CUSTO
+APIs de LLM, áudio STT/TTS e armazenamento vetorial têm custo; demo com limite e respostas simuladas.
+
+ARQUITETURA ESPECIALIZADA
+Workers para orquestração e validação; Firebase para conversas e agenda; provedor de IA sob orçamento.
+
+RISCO PRINCIPAL
+IA é probabilística; jamais executar ação financeira ou sensível sem autorização verificável e trilha de auditoria.
+
+
+======================================================================
+ATORES E AUTORIZAÇÃO
+======================================================================
+1. Visitante: visão e operações limitadas a seu papel; validar no servidor e nas rules.
+2. Cliente: visão e operações limitadas a seu papel; validar no servidor e nas rules.
+3. Atendente: visão e operações limitadas a seu papel; validar no servidor e nas rules.
+4. Gestor: visão e operações limitadas a seu papel; validar no servidor e nas rules.
+5. Agente de IA: visão e operações limitadas a seu papel; validar no servidor e nas rules.
+
+
+======================================================================
+MÓDULOS E PROPÓSITO
+======================================================================
+01. Chat: tela de listagem, detalhe, operação, estados de falha e permissão.
+02. Base de conhecimento: tela de listagem, detalhe, operação, estados de falha e permissão.
+03. Agendamento: tela de listagem, detalhe, operação, estados de falha e permissão.
+04. Transferência humana: tela de listagem, detalhe, operação, estados de falha e permissão.
+05. Ferramentas da IA: tela de listagem, detalhe, operação, estados de falha e permissão.
+06. Histórico: tela de listagem, detalhe, operação, estados de falha e permissão.
+07. Configurações do agente: tela de listagem, detalhe, operação, estados de falha e permissão.
+08. Permissões: tela de listagem, detalhe, operação, estados de falha e permissão.
+09. Analytics: tela de listagem, detalhe, operação, estados de falha e permissão.
+10. Auditoria: tela de listagem, detalhe, operação, estados de falha e permissão.
+
+
+======================================================================
+FUNCIONALIDADES, REGRAS E LIMITES
+======================================================================
+01. Chat com histórico. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+02. Base de conhecimento versionada. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+03. Busca semântica com fonte. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+04. Respostas restritas à base. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+05. Transferência humana. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+06. Agendamento com confirmação. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+07. Ferramentas em allowlist. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+08. Auditoria de ações. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+09. Simulador de agente. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+10. Configuração de linguagem. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+11. Controle por empresa. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+12. Painel de desempenho. Implementar autorização, input validation, estado de carregamento, estado vazio, erro com recuperação, logs apropriados e teste E2E.
+
+
+======================================================================
+JORNADA PRINCIPAL E CASOS ALTERNATIVOS
+======================================================================
+1. Cliente faz pergunta.
+2. Buscar fatos autorizados.
+3. Gerar resposta com fontes.
+4. Propor ação.
+5. Pedir confirmação.
+6. Executar e registrar.
+
+Em qualquer etapa: usuário não autenticado, sem permissão, conexão interrompida, item removido, limite excedido, edição concorrente, tentativa duplicada e retomada são fluxos previstos.
+
+
+======================================================================
+MÁQUINA DE ESTADOS
+======================================================================
+aberto -> em-ia -> aguardando-aprovacao -> com-humano -> resolvido -> falha
+Cada transição deve definir ator permitido, pré-condição, pós-condição, efeito externo, política de retry e log; setar transições ilegais como erro de domínio.
+
+
+======================================================================
+ENTIDADES DE DOMÍNIO
+======================================================================
+1. Empresa: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+2. Usuario: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+3. Atendimento: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+4. Mensagem: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+5. Documento: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+6. ChunkConhecimento: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+7. Acao: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+8. Confirmacao: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+9. Agendamento: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+10. VersaoPrompt: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+11. LogAuditoria: id, status, owner/tenant, campos especializados, versionamento e timestamps.
+
+
+======================================================================
+CATÁLOGO EXAUSTIVO DE TELAS
+======================================================================
+T001 — Landing / apresentação. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T002 — Cadastro / criar conta. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T003 — Login e recuperar acesso. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T004 — Onboarding e perfil. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T005 — Página principal / feed. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T006 — Busca e filtros. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T007 — Detalhes do recurso. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T008 — Fluxo de criação. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T009 — Fluxo de edição. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T010 — Confirmação / revisão. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T011 — Estado concluído / recibo. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T012 — Lista pessoal / histórico. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T013 — Notificações. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T014 — Mensagens ou contato. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T015 — Central de ajuda. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T016 — Preferências e privacidade. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T017 — Acesso e segurança. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T018 — Página vazia / primeira vez. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T019 — Carregamento e skeleton. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T020 — Erro de rede / retentar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T021 — Sem permissão / bloqueio. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T022 — Estado de conflito concorrente. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T023 — Admin: visão geral. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T024 — Admin: gestão de usuários. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T025 — Admin: moderação e auditoria. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T026 — Admin: regras e configurações. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T027 — Admin: relatórios. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T028 — Página 404 / recurso indisponível. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T029 — Módulo / Chat — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T030 — Módulo / Chat — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T031 — Módulo / Chat — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T032 — Módulo / Base de conhecimento — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T033 — Módulo / Base de conhecimento — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T034 — Módulo / Base de conhecimento — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T035 — Módulo / Agendamento — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T036 — Módulo / Agendamento — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T037 — Módulo / Agendamento — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T038 — Módulo / Transferência humana — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T039 — Módulo / Transferência humana — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T040 — Módulo / Transferência humana — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T041 — Módulo / Ferramentas da IA — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T042 — Módulo / Ferramentas da IA — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T043 — Módulo / Ferramentas da IA — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T044 — Módulo / Histórico — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T045 — Módulo / Histórico — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T046 — Módulo / Histórico — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T047 — Módulo / Configurações do agente — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T048 — Módulo / Configurações do agente — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T049 — Módulo / Configurações do agente — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T050 — Módulo / Permissões — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T051 — Módulo / Permissões — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T052 — Módulo / Permissões — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T053 — Módulo / Analytics — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T054 — Módulo / Analytics — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T055 — Módulo / Analytics — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T056 — Módulo / Auditoria — lista. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T057 — Módulo / Auditoria — detalhe. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+T058 — Módulo / Auditoria — criar/editar. Definir layout desktop/mobile, componentes acessíveis, vazio, carregando, erro, sem permissão e estados extremos.
+
+
+======================================================================
+CHECKLIST DE ACEITE
+======================================================================
+AC-01: Chat com histórico — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-02: Base de conhecimento versionada — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-03: Busca semântica com fonte — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-04: Respostas restritas à base — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-05: Transferência humana — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-06: Agendamento com confirmação — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-07: Ferramentas em allowlist — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-08: Auditoria de ações — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-09: Simulador de agente — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-10: Configuração de linguagem — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-11: Controle por empresa — persistência, autorização, concorrência, teste de integração, teste E2E.
+AC-12: Painel de desempenho — persistência, autorização, concorrência, teste de integração, teste E2E.
+
+
+======================================================================
+SEGURANÇA/PRIVACIDADE E COMPLIANCE
+======================================================================
+Risco específico: IA é probabilística; jamais executar ação financeira ou sensível sem autorização verificável e trilha de auditoria.
+Negar acesso por padrão; evitar PII em logs; segregação por conta/empresa; rate limits; verificação de token no Worker; hooks de webhook com assinatura; inventário de dados, retenção e eliminação; prova de consentimento quando aplicável; testes OWASP ASVS 5.0.
+
+
+======================================================================
+ESTRATÉGIA DE TESTES
+======================================================================
+Vitest para regras de domínio, Firebase Emulator para rules, Playwright em 390/768/1440px, contratos HTTP, fuzz de autorização, testes com duas sessões em paralelo, QA manual com leitor de tela, teste de carga moderado e observabilidade.
+
+
+======================================================================
+BACKLOG E EVOLUÇÃO
+======================================================================
+G0: documentação. G1: repositório e infraestrutura local. G2: um fluxo completo. G3: todos os atores principais. G4: integrações especializadas. G5: segurança/QA/auditoria. G6: deploy e demo pública.
+Não ativar custos externos antes de aprovar estimativa e limites.
+
+
+======================================================================
+REFERÊNCIAS
+======================================================================
+Pesquisa de tecnologias - Stack Overflow Survey 2026 — https://survey.stackoverflow.co/2026/technology/data
+State of JS 2025 — https://stateofjs.com/en-US
+Cloudflare Workers + Static Assets — https://developers.cloudflare.com/workers/static-assets/
+Cloudflare Workers limites — https://developers.cloudflare.com/workers/platform/limits/
+Cloudflare CLI cf — https://developers.cloudflare.com/cf/projects/
+Cloudflare R2 preços — https://developers.cloudflare.com/r2/pricing/
+Cloudflare Stream preços — https://developers.cloudflare.com/stream/pricing/
+Cloudflare Realtime SFU preços — https://developers.cloudflare.com/realtime/sfu/platform/pricing/
+Firebase preços — https://firebase.google.com/pricing
+Firestore Standard edition — https://firebase.google.com/docs/firestore/standard-edition
+Firestore melhores práticas — https://firebase.google.com/docs/firestore/best-practices
+Firestore transações — https://firebase.google.com/docs/firestore/manage-data/transactions
+Firebase Storage mudança de billing — https://firebase.google.com/docs/storage/faqs-storage-changes-announced-sept-2024
+Firebase Auth: validar ID token — https://firebase.google.com/docs/auth/admin/verify-id-tokens
+Firebase Emulator Suite — https://firebase.google.com/docs/emulator-suite
+OWASP ASVS 5.0 — https://asvs.owasp.org/
+WCAG 2.2 W3C — https://www.w3.org/WAI/standards-guidelines/wcag/
+Nielsen Norman Group heurísticas — https://www.nngroup.com/articles/ten-usability-heuristics/
+OpenStreetMap Tile Usage Policy — https://operations.osmfoundation.org/policies/tiles/
+Google Maps preços — https://developers.google.com/maps/billing-and-pricing/overview
+Mercado Pago split — https://www.mercadopago.com.br/developers/pt/docs/split-payments/split-1-1/integration-configuration/integrate-marketplace
+Mercado Pago Pix — https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/payment-integration/websites/pix

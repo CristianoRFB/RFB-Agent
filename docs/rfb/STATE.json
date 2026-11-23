@@ -1,0 +1,21 @@
+{
+  "product": "RFBAgent",
+  "date": "2026-11-22",
+  "repository": "CristianoRFB/RFB-Agent",
+  "branch": "feature/rfb-agent-g1-vertical-simulator",
+  "head": "PENDING_COMMIT",
+  "stage": "STARTER_IMPORTED",
+  "production": "NOT_RUN",
+  "qa": {
+    "unit": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "firebase": "NOT_RUN"
+  },
+  "tasks": {
+    "S001": "IN_PROGRESS",
+    "S002": "BLOCKED_AUTH_BACKEND",
+    "S003": "PLANNED_LEXICAL_DEMO",
+    "S004": "PLANNED_SIMULATED_BOOKING",
+    "S005": "BACKLOG"
+  }
+}
