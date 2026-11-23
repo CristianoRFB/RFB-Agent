@@ -38,6 +38,10 @@ test("gestor vê equipe, cria documento e cliente não vê informação interna"
  await page.locator('textarea[maxlength="10000"]').fill("Conteúdo de teste acessível, versionado e autorizável.");
  await page.getByRole("button",{name:"Salvar versão 1"}).click();
  await expect(page.getByText("Novo procedimento externo")).toBeVisible();
+ await page.getByRole("button",{name:"Editar fonte"}).last().click();
+ await page.locator('textarea[maxlength="10000"]').fill("Conteúdo atualizado sob controle de versão.");
+ await page.getByRole("button",{name:/Salvar versão 2/}).click();
+ await expect(page.getByText("Conteúdo atualizado sob controle de versão.")).toBeVisible();
  await page.screenshot({path:"test-results/emulator-manager.png",fullPage:true});
 });
 test("membro não obtém acesso ao trocar de empresa",async({page})=>{
