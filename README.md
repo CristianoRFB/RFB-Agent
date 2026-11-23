@@ -1,41 +1,32 @@
 # RFBAgent — Atendimento que entende e executa com permissão
 
-**Produto 08 do RFB Labs**, desenvolvido com o RFB Method GPT. O repositório foi inicializado em 22/11/2026; o desenvolvimento segue em um [PR draft #1](https://github.com/CristianoRFB/RFB-Agent/pull/1).
+Produto 08 do RFB Labs, desenvolvido segundo o RFB Method GPT.
 
-## O que funciona nesta demonstração
+**Status:** software de homologação com dados sintéticos. Autenticação, permissões, histórico, busca lexical com fonte, propostas, confirmação transacional local, auditoria e solicitação humana foram implementados e testados no Firebase Emulator. **Não é IA generativa nem SaaS implantado.**
 
-- Interface responsiva de atendimento com um cliente **fictício** e histórico persistente apenas no navegador (localStorage).
-- Base de conhecimento com documentos versionados, respostas por **busca lexical** e identificação da fonte.
-- Proposta de agendamento, confirmação expressa em etapa separada, cancelamento, expiração após 15 minutos, retry idempotente na mesma instância, registro sintético.
-- Solicitação de atendimento humano **apenas registrada**: nenhum profissional é notificado.
-- Navegação para Conversas, Conhecimento, Agendamentos e Auditoria local.
+## Repositório e entrega
 
-**Não há IA conectada, RAG semântico, login real, integração externa, persistência segura no servidor nem agendamentos reais.** É proibido inserir dados pessoais/empresariais reais nesta demo: identidade do usuário e registros podem ser adulterados no navegador. Não publicar como sistema de produção.
+- Desenvolvimento em [PR draft #1](https://github.com/CristianoRFB/RFB-Agent/pull/1), sem merge e sem produção.
+- Aplicação principal: pasta `web/` — React, TypeScript e Vite, login e Firestore no Emulator.
+- Gateway autorizado: `gateway/server.mjs` — Node e Firebase Admin somente no localhost (não é Worker Cloudflare).
+- Regras: `firebase/firestore.rules`; scripts e fixtures sintéticas no diretório `firebase/`.
+- App antigo em `index.html` na raiz é demo **sem autenticação**; mantenha só como referência visual.
 
-## Executar localmente — custo recorrente R$0
+## Execução
 
-Sem dependências npm. Na raiz do projeto, com Python 3:
+Leia [docs/DEV-SETUP.md](docs/DEV-SETUP.md) para Node 24, Java 21, Firebase Emulators, seed de usuários fictícios, gateway, SPA e testes. Nunca use senhas, usuários reais ou conexão de produção.
 
-    python -m http.server 4173
+## Qualidade
 
-Abrir http://localhost:4173 no navegador. Importações JavaScript precisam de servidor HTTP (não use file://). Clique em "Reiniciar demonstração" para descartar dados locais.
+- Firestore Rules 13 testes PASS; gateway 10 PASS, domínio 7 PASS.
+- Playwright integrado Chromium 3 PASS (Auth/Firestore/Gateway Emulator).
+- React TypeScript + Vite build PASS.
+- Detalhes e evidências: [docs/rfb/PROGRESS.md](docs/rfb/PROGRESS.md).
 
-## Testes do domínio — Node 22
+## Fonte e planejamento
 
-    node --test tests/*.test.mjs
-    node --check src/domain.mjs
-    node --check src/app.js
+[Especificação original](docs/source/ESPECIFICACAO-RFB.txt) · [Starter Pack](docs/source/STARTER-PACK.md) · [Catálogo de 58 telas](docs/source/UX-DESIGN-AND-QA.md) · [Diagramas do código](docs/IMPLEMENTED-DIAGRAMS.md) · [Rastreabilidade F01–F12](docs/FEATURE-TRACEABILITY.md) · [Plano Cloudflare](docs/CLOUDFLARE-PLAN.md).
 
-CI **PASS 7/7** no commit 9cc7c8e, com sintaxe validada. Evidência: [GitHub Actions run 45092093953](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953) e [relatório QA](qa/reports/runs/RUN-20261122-G1-CI.md). Playwright Chromium **PASS 3/3** em [GitHub Actions Browser QA](https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299566), com imagens sintéticas no artifact. Firestore Rules, segurança multi-tenant no servidor, auditoria visual completa e implantação **NOT_RUN**.
+**Meta R$ 0/mês:** nenhum produto pago habilitado, nenhum Cloudflare Worker/Pages RFBAgent criado. Cotas futuras precisam ser confirmadas. Não habilitar Blaze, pagamento, IA paga, SMS, produção ou merge sem revisão e autorização.
 
-## Arquitetura e próximas fatias
-
-Documentos preservados da metodologia: [especificação](docs/source/ESPECIFICACAO-RFB.txt), [Starter Pack](docs/source/STARTER-PACK.md), [diagramas](docs/source/DIAGRAMAS.md), [catálogo de 58 telas](docs/source/UX-DESIGN-AND-QA.md), [roadmap](docs/source/ROADMAP.md). Riscos: [ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-1. Executar QA de navegador real em desktop/mobile, incluindo acessibilidade e fluxo completo.
-2. Introduzir Firebase Auth + Firestore Emulator com Rules e testes negativos de tenant, ownership e papéis. Não conectar produção.
-3. Implementar confirmação transacional no servidor e trilha confiável, mantendo modo simulado até homologação.
-4. Migrar interface para React + TypeScript + Vite, preservando comportamento testado.
-5. Só considerar Cloudflare Free e Firebase Spark após revisão de cotas e autorização; não ativar Blaze, billing ou APIs pagas por conta própria.
-
-Estado canônico: [docs/rfb/STATE.json](docs/rfb/STATE.json); handoff em [docs/HANDOFF.md](docs/HANDOFF.md). Sem merge e sem deploy.
+**90% do produto original NÃO foi atingido ou comprovado.** Código testado no Emulator é uma base operacional para desenvolvimento; APIs compatíveis com Cloudflare, IA semântica real, agenda externa, notificações, privacidade/backup e o catálogo integral de telas continuam pendentes.

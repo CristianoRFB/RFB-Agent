@@ -1,9 +1,11 @@
-# Triagem GitHub 2026-11-22 — RFBAgent
+# Triagem GitHub — atualização do RFBAgent
 
-**Abertura:** repo público, vazio: API 409 Git Repository is empty; default main configurada mas nenhum commit ou branch; Issues abertas 0; PRs abertos 0.
+22/11/2026 (America/Sao_Paulo). Repositório público CristianoRFB/RFB-Agent.
+Origem: main inicializada f88e2039b9a84e7c7d18dbf7fb26b86436174bda.
+PR #1 existente: https://github.com/CristianoRFB/RFB-Agent/pull/1, branch feature/rfb-agent-g1-vertical-simulator.
+HEAD de código antes de checkpoint: 02e4093dc9d1ec28bd08edcd07565f220e67a6f4.
+Issues abertas na última triagem: 0; PRs abertos: 1 (#1 draft, não mesclado); reviews: 0; comentários: 0.
+PR categorizado IMPLEMENTED_EMULATOR_REVIEW_NEEDED; não encerre/mescle sem revisão do Worker, integração real e gate de segurança.
+Nenhuma Issue ou PR fechada na rodada. Cloudflare somente leitura, nenhuma publicação.
 
-**Execução:** main inicializada f88e203, branch feature/rfb-agent-g1-vertical-simulator, docs d72f89c e implementação a34af92.
-
-**Nova triagem:** PR draft #1 criado https://github.com/CristianoRFB/RFB-Agent/pull/1; Issues abertas 0, PR aberto 1 (não encerrado). Testes nativos e revisão ainda sem evidência completa. Não fazer merge/fechamento.
-
-Categoria PR #1: IMPLEMENTED_UNVERIFIED; aguarda Node CI, browser QA, Auth/Rules e revisão. Nenhuma Issue ou PR fechada.
+Antes de encerrar a sessão, reconsultar Issues/PRs e CI. Nunca assumir merge por `mergeable: true`.

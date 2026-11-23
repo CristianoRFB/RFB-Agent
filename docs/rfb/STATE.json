@@ -9,7 +9,7 @@
   "documentationCommit": "d72f89ccb4351c36ee3490e216ebc3c2e32b1329",
   "implementationCommit": "a34af92533a3e789eab3a31a47fb090fe002fc8a",
   "pr": "https://github.com/CristianoRFB/RFB-Agent/pull/1",
-  "stage": "G2_EMULATOR_INTEGRATION_TESTED_PARTIAL_BROWSER",
+  "stage": "EMULATOR_BACKEND_FUNCTIONAL_TESTED_NOT_PRODUCTION",
   "environment": "AUTH_FIRESTORE_EMULATOR_REACT_GATEWAY_NODE",
   "production": "NOT_RUN",
   "costGoalBRLMonthly": 0,
@@ -17,116 +17,104 @@
     {
       "id": "S001",
       "status": "REVIEW",
-      "detail": "RFB method spec imported, design/threat architecture documented"
+      "acceptance": "Original 5 docs, architecture and risk decisions; visual T001-T058 not completed"
     },
     {
       "id": "S002",
       "status": "TESTED_EMULATOR",
-      "detail": "Firebase Auth, Firestore Rules, staff/manager/customer tenant RBAC; server-only provisioning"
+      "acceptance": "Firebase Auth local + Rules tenant, ownership, role, immutable client audit and confirmed booking"
     },
     {
       "id": "S003",
-      "status": "TESTED_SIMULATOR",
-      "detail": "Versioned knowledge and bounded lexical response with source and fail-safe fallback; semantic retrieval not implemented"
+      "status": "TESTED_LEXICAL_SIMULATOR",
+      "acceptance": "Versioned sources, answer with provenance, safe fallback; semantic LLM/RAG missing"
     },
     {
       "id": "S004",
       "status": "TESTED_EMULATOR",
-      "detail": "Gateway transactional confirm/cancel, explicit accepted true, idempotency, expiry, tenant check, audit; no external scheduling"
+      "acceptance": "Explicit confirm, transaction, retry, expiry and cancel, audit; no external calendar"
     },
     {
       "id": "S005",
-      "status": "PARTIAL",
-      "detail": "Human status, manager config, role view, basic analytics; notifications and production dashboard not implemented"
+      "status": "PARTIAL_TESTED_EMULATOR",
+      "acceptance": "Handoff request/status/audit only, manager config, staff audit timeline and basic counts; no external notifications"
     },
     {
       "id": "S006",
-      "status": "BLOCKED",
-      "detail": "Cloudflare Worker backend adapter and authorized deployment, pricing/quotas review, real production controls"
+      "status": "BLOCKED_PRODUCTION_GATE",
+      "acceptance": "Cloudflare Worker adapter and secure hosted Firebase project, approval, quotas, rollback and real QA"
     },
     {
       "id": "S007",
-      "status": "BLOCKED",
-      "detail": "Model inference and/or semantic search under verified R$0 limits, unavailable in current demo"
+      "status": "BACKLOG",
+      "acceptance": "True semantic retrieval/AI under verified zero-cost resource and 58 fully designed/tested journeys"
     }
   ],
   "qa": {
-    "v8DomainSmoke": {
+    "domain": {
       "status": "PASS",
-      "checks": 6,
-      "notes": "Mesma fonte do domínio em isolate V8; exports transformados em definições locais e structuredClone substituído por clone JSON. NÃO equivale a Node CI ou teste E2E."
-    },
-    "nodeUnitTests": {
-      "status": "PASS",
-      "casesWritten": 7,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085442"
-    },
-    "ci": {
-      "status": "PASS",
-      "details": "7 Node unit tests and 3 Playwright E2E checks; browser screenshots archived",
-      "testedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311"
-    },
-    "browser": {
-      "status": "PASS",
-      "cases": 3,
-      "passed": 3,
-      "failed": 0,
-      "environment": "GitHub Actions Ubuntu / Playwright Chromium",
-      "viewportEvidence": [
-        "1440x900 desktop",
-        "390x844 mobile",
-        "keyboard"
-      ],
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299566",
-      "screenshots": "artifact rfbagent-browser-evidence ID 14780919544 (synthetic data, not yet visually reviewed)"
-    },
-    "firebaseRules": {
-      "status": "NOT_RUN"
-    },
-    "deploy": {
-      "status": "NOT_RUN"
+      "tests": 7,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617034"
     },
     "firestoreRules": {
       "status": "PASS",
-      "tests": 11,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085388"
+      "tests": 13,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095616989"
     },
     "gateway": {
       "status": "PASS",
-      "tests": 8,
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085420"
+      "tests": 10,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095823085"
     },
     "reactBuild": {
       "status": "PASS",
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085406"
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617036"
+    },
+    "browserLegacy": {
+      "status": "PASS",
+      "tests": 3,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095617046"
     },
     "browserIntegrated": {
-      "status": "IN_PROGRESS",
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085496",
-      "notes": "Earlier 2/3 PASS, message visibility unresolved; diagnostic added, do not claim E2E green until checked"
+      "status": "PASS",
+      "tests": 3,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095857436",
+      "notes": "Playwright Chromium with synthetic Auth+Firestore and local gateway; screenshots artifacts in run; not production QA"
+    },
+    "productionSecurity": {
+      "status": "NOT_RUN"
+    },
+    "externalCalendar": {
+      "status": "NOT_RUN"
+    },
+    "cloudflareDeployment": {
+      "status": "NOT_RUN"
     }
   },
   "risks": [
-    "AV-01 cliente controla actor",
-    "AV-02 localStorage não impõe autorização multi-tenant",
-    "AV-03 reserva confirmada sem backend não é real",
-    "AV-04 auditoria local mutável",
-    "AV-05 busca lexical não é RAG/LLM",
-    "AV-06 concorrência não resolvida server-side"
+    "AV-01 production authorization not yet deployed",
+    "AV-02 Firebase Emulator is isolated development only",
+    "AV-03 Node Admin gateway not compatible with Cloudflare Worker runtime",
+    "AV-04 actual semantic AI/RAG not implemented",
+    "AV-05 external calendar and notifications absent",
+    "AV-06 58-screen visual/functional QA incomplete",
+    "AV-07 production data retention/backup/LGPD pending"
   ],
-  "nextSlice": "Read browser CI diagnostic and verify Firestore read under customer; fix concrete regression, then ensure E2E 3/3. Worker adapter must be reviewed separately before any authorized staging.",
+  "nextSlice": "Security review then portable Worker adapter and independently isolated Firebase staging, after verifying free quotas and explicit authorization; expand UX T001–T058 and real semantic model without paid APIs.",
   "browserTestedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311",
-  "updatedUtc": "2026-11-23T01:35:00Z",
+  "updatedUtc": "2026-11-23T01:43:00Z",
   "prodStatus": "NOT_DEPLOYED",
   "sourceOfTruth": "docs/source/ESPECIFICACAO-RFB.txt",
-  "completionPercent": "NOT_VERIFIABLE_90_PERCENT_NOT_REACHED",
+  "completionPercent": "NOT_MEASURED_90_PERCENT_NOT_DEMONSTRATED",
   "currentHeadAtCheckpoint": "94cbbf26f0bd37aa5feafe42cd10642456ea3632",
   "cloudflare": {
     "accountChecked": true,
     "matchingRfbagentWorkers": 0,
     "matchingRfbagentPages": 0,
+    "resourcesCreated": 0,
     "deploy": "NOT_RUN",
     "billingChanged": false,
-    "resourcesChanged": false
-  }
+    "production": "NOT_RUN"
+  },
+  "codeHeadBeforeCheckpoint": "02e4093dc9d1ec28bd08edcd07565f220e67a6f4"
 }

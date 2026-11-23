@@ -1,30 +1,24 @@
-# HANDOFF RFBAgent — 22/11/2026
+# HANDOFF — RFBAgent / 22 de novembro de 2026
 
-Repo: CristianoRFB/RFB-Agent; branch: feature/rfb-agent-g1-vertical-simulator; PR draft: https://github.com/CristianoRFB/RFB-Agent/pull/1
-Base/main: f88e2039b9a84e7c7d18dbf7fb26b86436174bda
-Starter/spec: d72f89ccb4351c36ee3490e216ebc3c2e32b1329
-Último commit funcional: a34af92533a3e789eab3a31a47fb090fe002fc8a
+Repositório: https://github.com/CristianoRFB/RFB-Agent
+PR existente: https://github.com/CristianoRFB/RFB-Agent/pull/1 (draft; não mesclado)
+Branch: feature/rfb-agent-g1-vertical-simulator
+Baseline original main: f88e2039b9a84e7c7d18dbf7fb26b86436174bda
+Último commit de código antes deste handoff: 02e4093dc9d1ec28bd08edcd07565f220e67a6f4
 
-## Reproduzir
-Rodar a interface estática na pasta raiz com python -m http.server 4173 e abrir http://localhost:4173 (não abrir file:// porque importa módulos ES).
-Rodar os testes: node --test tests/*.test.mjs, com Node.js 22 (nenhuma dependência npm).
-Cenário: digitar 'Qual o horário de atendimento?', conferir fonte v1, propor horário futuro, confirmar somente no botão separado, confirmar retry sem duplicação, navegar em Auditoria e reiniciar.
+## Começar a próxima sessão
 
-## Evidência
-V8 isolate domain smoke 6 PASS com structuredClone substituído por clone JSON; Node, Actions, browser, Firebase Rules e deploy NOT_RUN. Não inventar CI ou screenshot.
+1. Ler docs/rfb/STATE.json, docs/FEATURE-TRACEABILITY.md, docs/CLOUDFLARE-PLAN.md, docs/DEV-SETUP.md.
+2. Conferir HEAD real, Issues e PRs abertos e checks do commit atual; não recriar PR.
+3. Reproduzir com Node24/Java21, somente Auth/Firestore Emulators, gateway 8787, React 5173; instruções completas em docs/DEV-SETUP.md.
+4. Referenciar os últimos runs PASS: Rules 13/13, Gateway 10/10, React build, E2E integrado 3/3 (URLs em PROGRESS).
+5. Verificar ainda QA por leitor de tela/contraste, negativa cross-tenant em staging e Worker adapter antes de deploy.
 
-## Segurança/custo
-Actor de teste controlado pelo browser, localStorage adulterável, auditoria local não confiável. Somente demonstração com dados sintéticos, sem IA real nem comunicação externa. Não habilitar pagamento, billing, SMS, login de clientes ou produção.
+## Riscos e custos
 
-## Retomar
-rfb:resume -> buscar HEAD atual, todos Issues e PRs (review/checks), fonte specs, docs/rfb/STATE.json, executar testes e QA com browser. S002: backend Auth/Firestore Rules no emulador, testes cross-tenant e confirmação verificável server-side. Depois migrar a UI para React+TypeScript+Vite e revisar 58 T-IDs conforme pertinência.
+Sem deploy Cloudflare. Conta Cloudflare consultada apenas read-only: nenhum Worker/Pages RFBAgent existente.
+Nenhum Firebase real, Blaze, domínio próprio ou API de IA paga. Meta custo recorrente R$0, sujeita a quotas futuras.
+Dados em desenvolvimento são sintéticos, Auth/Firebase Emulator, gateway Node localhost, não seguro para produção.
+90% de conclusão do produto original NÃO comprovado. Não afirmar IA real ou sistema público pronto.
 
-## CI comprovado após o checkpoint inicial
-GitHub Actions https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092093953 executou e passou 7/7 testes em Node 22, sem falhas, além de checagens de sintaxe. Commit testado: 9cc7c8e69b4bc40d4709f2899fbd84315608fc3a. Browser/Firestore/produção não foram testados.
-
-## Browser QA (evidência adicional)
-- Commit testado 5af49046: **PASS 3/3 Playwright Chromium**, desktop 1440px, mobile 390px e teclado. Recarregamento, fontes, confirmação separada, auditoria e prevenção de HTML injection testados.
-- Screenshot sintético desktop/mobile gerado em artifact 'rfbagent-browser-evidence' (não inspecionado visualmente nesta sessão).
-- Execução https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299566
-- Node CI 7/7 PASS também em https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299463
-- Continuação obrigatória: Firebase Rules/Emulator (NÃO TESTADO), QA de contraste/leitor de tela (NÃO TESTADO), revisão humana de screenshots e deploy (NÃO EXECUTADO).
+Status: TESTADO_EMULADOR para fatias principais; NOT_RUN produção; PR draft preservado.
