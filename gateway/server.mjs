@@ -86,7 +86,10 @@ export function startGateway({port=8787}={}) {
  const {db,auth}=dbAndAuth();
  const server=createServer(async(req,res)=>{
   const origin=req.headers.origin;
-  const safeOrigin=typeof origin==="string"&&allowedHosts.has(new URL(origin).host)&&new URL(origin).protocol==="http:"?origin:null;
+  let safeOrigin=null;
+  if(typeof origin==="string"){
+   try {const parsed=new URL(origin);if(parsed.protocol==="http:"&&allowedHosts.has(parsed.host))safeOrigin=origin;}catch{}
+  }
   if(origin&&!safeOrigin){res.writeHead(403,{"Content-Type":"application/json"});res.end('{"error":"ORIGEM_NEGADA"}');return;}
   const headers={"Content-Type":"application/json","Cache-Control":"no-store","Vary":"Origin","Access-Control-Allow-Headers":"Authorization, Content-Type","Access-Control-Allow-Methods":"POST, GET, OPTIONS"};
   if(safeOrigin)headers["Access-Control-Allow-Origin"]=safeOrigin;

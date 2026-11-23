@@ -23,8 +23,9 @@ async function token(email) {
   method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({email,password:"SenhaDemo123!",returnSecureToken:true})
  });
- assert.equal(res.status,200,await res.text());
- return (await res.json()).idToken;
+ const payload=await res.json();
+ assert.equal(res.status,200,JSON.stringify(payload));
+ return payload.idToken;
 }
 async function proposal({id="propx",company="alpha",conversation="conversation-a",customer="customerA",expired=false}={}) {
  const slot=Timestamp.fromMillis(Date.now()+86400000);

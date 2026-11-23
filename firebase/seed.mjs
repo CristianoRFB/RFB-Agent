@@ -1,5 +1,5 @@
 // ONLY for Firebase Local Emulator Suite. No production project is ever contacted.
-import {initializeApp} from "firebase-admin/app";
+import {initializeApp,getApps} from "firebase-admin/app";
 import {getAuth} from "firebase-admin/auth";
 import {getFirestore,Timestamp} from "firebase-admin/firestore";
 
@@ -9,7 +9,7 @@ if(process.env.FIRESTORE_EMULATOR_HOST!==expectedFirestore ||
   throw new Error("SEED_BLOQUEADO: defina FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 e FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 antes de executar.");
 }
 const projectId="demo-rfbagent";
-const app=initializeApp({projectId});
+const app=getApps()[0]??initializeApp({projectId});
 const users=[
  {uid:"managerA",email:"gestor@rfbagent.invalid",role:"manager",company:"alpha"},
  {uid:"attendantA",email:"atendente@rfbagent.invalid",role:"attendant",company:"alpha"},
