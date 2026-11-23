@@ -17,7 +17,12 @@ const fetchImpl=async (url,options)=>{
  if(target.hostname!=="firestore.googleapis.com")throw new Error("NAO_USAR_REDE_EXTERNA");
  target.protocol="http:";
  target.host="127.0.0.1:8080";
- return fetch(target,options);
+ const response=await fetch(target,options);
+ if(!response.ok){
+   let body;try{body=await response.clone().json()}catch{body={}};
+   console.error("EMULATOR_REST_DIAGNOSTIC",JSON.stringify({method:options.method,path:target.pathname.split("/").slice(-1)[0],status:response.status,code:body.error?.status,message:String(body.error?.message??"").slice(0,350)}));
+ }
+ return response;
 };
 const fixed=Timestamp.fromMillis(Math.floor((Date.now()+8*86400000)/1800000)*1800000);
 let convoA,convoB;
