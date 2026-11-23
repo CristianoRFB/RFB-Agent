@@ -20,6 +20,6 @@ jobs:
         with:
           node-version: '24'
       - name: WebCrypto JWT and REST edge tests (no external credentials)
-        run: node --test worker/tests/*.test.mjs
+        run: node --test worker/tests/firebase-auth.test.mjs worker/tests/firestore-rest.test.mjs worker/tests/actions.test.mjs
       - name: Syntax check worker modules
         run: find worker -name '*.mjs' -print0 | xargs -0 -n 1 node --check
