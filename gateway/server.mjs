@@ -1,0 +1,112 @@
+// RFBAgent — local-only privileged confirmation gateway for Firebase Emulator.
+// NOT deployable on Cloudflare Workers: uses Node HTTP + Admin SDK.
+// Production requires a reviewed Worker adapter, trusted identity and billing approval gates.
+import {createServer} from "node:http";
+import {fileURLToPath} from "node:url";
+import {initializeApp,getApps} from "firebase-admin/app";
+import {getAuth} from "firebase-admin/auth";
+import {getFirestore,Timestamp} from "firebase-admin/firestore";
+
+const allowedHosts=new Set(["127.0.0.1:5173","localhost:5173"]);
+const idPattern=/^[A-Za-z0-9_-]{1,100}$/;
+class HttpError extends Error {
+ constructor(code,status){super(code);this.status=status;}
+}
+function assertEmulators() {
+ if(process.env.FIRESTORE_EMULATOR_HOST!=="127.0.0.1:8080" ||
+    process.env.FIREBASE_AUTH_EMULATOR_HOST!=="127.0.0.1:9099")
+   throw new Error("GATEWAY_BLOQUEADO_SEM_EMULADORES");
+}
+function dbAndAuth() {
+ assertEmulators();
+ const app=getApps()[0]??initializeApp({projectId:"demo-rfbagent"});
+ return {db:getFirestore(app),auth:getAuth(app)};
+}
+function validId(value){
+ if(typeof value!=="string"||!idPattern.test(value))throw new HttpError("ID_INVALIDO",400);
+ return value;
+}
+async function readBody(req){
+ let body="",size=0;
+ for await (const chunk of req) {
+  size+=chunk.length;
+  if(size>4096)throw new HttpError("CORPO_EXCESSIVO",413);
+  body+=chunk.toString("utf8");
+ }
+ try{return JSON.parse(body);}
+ catch{throw new HttpError("JSON_INVALIDO",400);}
+}
+async function identity(req,auth){
+ const authorization=req.headers.authorization;
+ if(typeof authorization!=="string"||!authorization.startsWith("Bearer "))throw new HttpError("NAO_AUTENTICADO",401);
+ try {const decoded=await auth.verifyIdToken(authorization.slice(7));return decoded.uid;}
+ catch {throw new HttpError("TOKEN_INVALIDO",401);}
+}
+async function confirmBooking(db,uid,body){
+ if(!body||body.accepted!==true)throw new HttpError("CONFIRMACAO_EXPLICITA_OBRIGATORIA",400);
+ const companyId=validId(body.companyId),conversationId=validId(body.conversationId),proposalId=validId(body.proposalId);
+ const base="companies/"+companyId;
+ const member=db.doc(base+"/members/"+uid);
+ const conv=db.doc(base+"/conversations/"+conversationId);
+ const proposal=db.doc(base+"/conversations/"+conversationId+"/proposals/"+proposalId);
+ const booking=db.doc(base+"/conversations/"+conversationId+"/bookings/"+proposalId);
+ const event=db.collection(base+"/conversations/"+conversationId+"/audit").doc();
+ return await db.runTransaction(async tx=>{
+  const [m,c,p,b]=await Promise.all([tx.get(member),tx.get(conv),tx.get(proposal),tx.get(booking)]);
+  if(!m.exists||m.get("active")!==true||m.get("role")!=="customer"||!c.exists||c.get("customerUid")!==uid||c.get("companyId")!==companyId)
+   throw new HttpError("SEM_AUTORIZACAO",403);
+  if(!p.exists||p.get("customerUid")!==uid)throw new HttpError("PROPOSTA_NAO_AUTORIZADA",403);
+  if(b.exists) return {status:"confirmed",bookingId:proposalId,replayed:true};
+  if(p.get("status")!=="pending"||!p.get("expiresAt")||p.get("expiresAt").toMillis()<=Date.now()||!p.get("slot")||p.get("slot").toMillis()<=Date.now())
+   throw new HttpError("PROPOSTA_INDISPONIVEL",409);
+  tx.update(proposal,{status:"confirmed",confirmedAt:Timestamp.now()});
+  tx.create(booking,{customerUid:uid,proposalId,slot:p.get("slot"),status:"confirmed",createdAt:Timestamp.now(),mode:"EMULATOR"});
+  tx.create(event,{type:"BOOKING_CONFIRMED_EXPLICIT",actorUid:uid,proposalId,createdAt:Timestamp.now()});
+  return {status:"confirmed",bookingId:proposalId,replayed:false};
+ });
+}
+async function cancelProposal(db,uid,body) {
+ const companyId=validId(body?.companyId),conversationId=validId(body?.conversationId),proposalId=validId(body?.proposalId);
+ const base="companies/"+companyId;
+ const member=db.doc(base+"/members/"+uid),conv=db.doc(base+"/conversations/"+conversationId),prop=db.doc(base+"/conversations/"+conversationId+"/proposals/"+proposalId);
+ const event=db.collection(base+"/conversations/"+conversationId+"/audit").doc();
+ return await db.runTransaction(async tx=>{
+  const [m,c,p]=await Promise.all([tx.get(member),tx.get(conv),tx.get(prop)]);
+  if(!m.exists||m.get("active")!==true||m.get("role")!=="customer"||!c.exists||c.get("customerUid")!==uid||c.get("companyId")!==companyId)
+   throw new HttpError("SEM_AUTORIZACAO",403);
+  if(!p.exists||p.get("customerUid")!==uid)throw new HttpError("PROPOSTA_NAO_AUTORIZADA",403);
+  if(p.get("status")==="cancelled")return {status:"cancelled",replayed:true};
+  if(p.get("status")!=="pending")throw new HttpError("PROPOSTA_INDISPONIVEL",409);
+  tx.update(prop,{status:"cancelled",cancelledAt:Timestamp.now()});
+  tx.create(event,{type:"PROPOSAL_CANCELLED",actorUid:uid,proposalId,createdAt:Timestamp.now()});
+  return {status:"cancelled",replayed:false};
+ });
+}
+export function startGateway({port=8787}={}) {
+ const {db,auth}=dbAndAuth();
+ const server=createServer(async(req,res)=>{
+  const origin=req.headers.origin;
+  const safeOrigin=typeof origin==="string"&&allowedHosts.has(new URL(origin).host)&&new URL(origin).protocol==="http:"?origin:null;
+  if(origin&&!safeOrigin){res.writeHead(403,{"Content-Type":"application/json"});res.end('{"error":"ORIGEM_NEGADA"}');return;}
+  const headers={"Content-Type":"application/json","Cache-Control":"no-store","Vary":"Origin","Access-Control-Allow-Headers":"Authorization, Content-Type","Access-Control-Allow-Methods":"POST, GET, OPTIONS"};
+  if(safeOrigin)headers["Access-Control-Allow-Origin"]=safeOrigin;
+  const finish=(status,payload)=>{res.writeHead(status,headers);res.end(JSON.stringify(payload));};
+  if(req.method==="OPTIONS"){finish(204,{});return;}
+  if(req.method==="GET"&&req.url==="/health"){finish(200,{status:"emulator-only",production:false});return;}
+  if(req.method!=="POST"||!["/api/bookings/confirm","/api/proposals/cancel"].includes(req.url)){finish(404,{error:"ROTA_INEXISTENTE"});return;}
+  try{
+   const uid=await identity(req,auth);
+   const body=await readBody(req);
+   const result=req.url==="/api/bookings/confirm"?await confirmBooking(db,uid,body):await cancelProposal(db,uid,body);
+   finish(200,result);
+  }catch(err){finish(err instanceof HttpError?err.status:500,{error:err instanceof HttpError?err.message:"FALHA_INTERNA"});}
+ });
+ return new Promise((resolve,reject)=>{
+  server.on("error",reject);
+  server.listen(port,"127.0.0.1",()=>resolve(server));
+ });
+}
+if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]) {
+ await startGateway();
+ console.log("RFBAgent gateway local iniciado em 127.0.0.1:8787 — SOMENTE EMULADORES");
+}
