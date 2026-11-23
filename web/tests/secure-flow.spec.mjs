@@ -28,6 +28,8 @@ test("gestor vê equipe, cria documento e cliente não vê informação interna"
  await enter(page,"gestor@rfbagent.invalid");
  await page.getByRole("button",{name:"Equipe"}).click();
  await expect(page.getByText("managerA")).toBeVisible();
+ await page.getByRole("button",{name:"Auditoria"}).click();
+ await expect(page.getByText("Eventos e trilha de auditoria (Emulator)")).toBeVisible();
  await page.getByRole("button",{name:"Conhecimento"}).click();
  await page.getByText("Procedimento interno").waitFor();
  await page.locator('input[maxlength="120"]').fill("Novo procedimento externo");

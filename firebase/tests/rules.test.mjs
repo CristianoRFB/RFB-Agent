@@ -131,3 +131,15 @@ test("cliente autorizado também pode consultar mensagens persistidas da convers
  const otherMessages=collection(dbFor("customerB"),"companies/alpha/conversations/conversation-a/messages");
  await assertFails(getDocs(query(otherMessages,where("customerUid","==","customerA"))));
 });
+
+test("eventos de auditoria são legíveis por equipe, nunca clientes",async()=>{
+ await env.withSecurityRulesDisabled(async ctx=>{
+  await setDoc(doc(ctx.firestore(),"companies/alpha/conversations/conversation-a/audit/event1"),{
+    type:"BOOKING_CONFIRMED_EXPLICIT",actorUid:"customerA",createdAt:Timestamp.now()
+  });
+ });
+ await assertSucceeds(getDocs(collection(dbFor("managerA"),"companies/alpha/conversations/conversation-a/audit")));
+ await assertSucceeds(getDocs(collection(dbFor("attendantA"),"companies/alpha/conversations/conversation-a/audit")));
+ await assertFails(getDocs(collection(dbFor("customerA"),"companies/alpha/conversations/conversation-a/audit")));
+ await assertFails(getDocs(collection(dbFor("managerB"),"companies/alpha/conversations/conversation-a/audit")));
+});
