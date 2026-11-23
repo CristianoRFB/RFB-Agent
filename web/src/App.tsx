@@ -17,7 +17,7 @@ const tabs:Array<{id:Tab;label:string;icon:string}>=[
 ];
 function format(date?:Timestamp) {return date?.toDate().toLocaleString("pt-BR",{dateStyle:"medium",timeStyle:"short"})??"Agora";}
 function messageFrom(error:unknown){return error instanceof Error?error.message:"Erro não identificado";}
-function useItems<T extends {id:string}>(path:string|null,filter?:{field:string;value:string}) {
+function useItems<T extends {id:string}>(path:string|null,filter?:{field:string;value:string|boolean}) {
  const [items,setItems]=useState<T[]>([]),[error,setError]=useState("");
  useEffect(()=>{
   setItems([]);setError("");
@@ -48,9 +48,9 @@ export default function App(){
  },[user,company]);
  const root=db&&user&&member?"companies/"+company:null;
  const conversations=useItems<Conversation>(root?root+"/conversations":null,member?.role==="customer"&&user?{field:"customerUid",value:user.uid}:undefined);
- const knowledge=useItems<Knowledge>(root?root+"/knowledge":null,member?.role==="customer"?{field:"published",value:"__never__"}:undefined);
+ const knowledge=useItems<Knowledge>(root&&member?.role!=="customer"?root+"/knowledge":null);
  // Customer documents are fetched using a separate boolean filter below; no unscoped customer query.
- const customerKnowledge=useItems<Knowledge>(root&&member?.role==="customer"?root+"/knowledge":null,member?.role==="customer"?{field:"published",value:"true"}:undefined);
+ const customerKnowledge=useItems<Knowledge>(root&&member?.role==="customer"?root+"/knowledge":null,member?.role==="customer"?{field:"published",value:true}:undefined);
  const conv=conversations.items.find(x=>x.id===selected)??conversations.items[0], cid=conv?.id;
  const messages=useItems<Message>(root&&cid?root+"/conversations/"+cid+"/messages":null);
  const proposals=useItems<Proposal>(root&&cid?root+"/conversations/"+cid+"/proposals":null);
