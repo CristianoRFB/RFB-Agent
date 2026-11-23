@@ -136,3 +136,38 @@ test("handoff denies other customer and cross-company user",async()=>{
  assert.equal((await post("/api/conversations/handoff",{companyId:"alpha",conversationId:id},cross)).status,403);
  assert.equal((await db.doc("companies/alpha/conversations/"+id).get()).get("status"),"open");
 });
+
+test("duas propostas da mesma empresa para o mesmo bloco de 30 minutos não reservam simultaneamente",async()=>{
+ const now=Date.now(), block=Math.floor((now+4*86400000)/1800000)*1800000;
+ const slot=Timestamp.fromMillis(block+60_000);
+ const a="conflict-a",b="conflict-b";
+ await db.doc("companies/alpha/conversations/conversation-b-2").set({companyId:"alpha",customerUid:"customerB",status:"open",createdAt:Timestamp.now(),updatedAt:Timestamp.now()});
+ for(const [id,conv,customer] of [[a,"conversation-a","customerA"],[b,"conversation-b-2","customerB"]]){
+  await db.doc("companies/alpha/conversations/"+conv+"/proposals/"+id).set({customerUid:customer,slot,expiresAt:Timestamp.fromMillis(Date.now()+600000),status:"pending",createdAt:Timestamp.now()});
+ }
+ const [ta,tb]=await Promise.all([token("cliente@rfbagent.invalid"),token("cliente2@rfbagent.invalid")]);
+ const [ra,rb]=await Promise.all([
+  post("/api/bookings/confirm",request(a),ta),
+  post("/api/bookings/confirm",{companyId:"alpha",conversationId:"conversation-b-2",proposalId:b,accepted:true},tb)
+ ]);
+ assert.deepEqual([ra.status,rb.status].sort(),[200,409]);
+ const locks=await db.collection("companies/alpha/slots").where("proposalId","in",[a,b]).get();
+ assert.equal(locks.size,1);
+ const winner=ra.status===200?{id:a,conv:"conversation-a",t:ta}:{id:b,conv:"conversation-b-2",t:tb};
+ const loser=ra.status===409?{id:a,conv:"conversation-a",t:ta}:{id:b,conv:"conversation-b-2",t:tb};
+ assert.equal((await post("/api/bookings/cancel",{companyId:"alpha",conversationId:winner.conv,proposalId:winner.id,accepted:false},winner.t)).status,400);
+ assert.equal((await post("/api/bookings/cancel",{companyId:"alpha",conversationId:winner.conv,proposalId:winner.id,accepted:true},loser.t)).status,403);
+ const cancel=await post("/api/bookings/cancel",{companyId:"alpha",conversationId:winner.conv,proposalId:winner.id,accepted:true},winner.t);
+ assert.equal(cancel.status,200);assert.equal(cancel.body.replayed,false);
+ const retry=await post("/api/bookings/cancel",{companyId:"alpha",conversationId:winner.conv,proposalId:winner.id,accepted:true},winner.t);
+ assert.equal(retry.status,200);assert.equal(retry.body.replayed,true);
+ const released=await db.collection("companies/alpha/slots").where("proposalId","==",winner.id).get();
+ assert.equal(released.size,0);
+ const newBooking=await post("/api/bookings/confirm",{companyId:"alpha",conversationId:loser.conv,proposalId:loser.id,accepted:true},loser.t);
+ assert.equal(newBooking.status,200);
+ assert.equal((await post("/api/bookings/confirm",{companyId:"alpha",conversationId:winner.conv,proposalId:winner.id,accepted:true},winner.t)).status,409);
+});
+test("a reserva bloqueada em outra empresa não expõe vaga a um cliente cruzado",async()=>{
+ const t=await token("cliente-b@rfbagent.invalid");
+ assert.equal((await post("/api/bookings/cancel",{companyId:"alpha",conversationId:"conversation-a",proposalId:"valid-prop",accepted:true},t)).status,403);
+});

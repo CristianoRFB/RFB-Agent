@@ -98,6 +98,12 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // A 30-minute slot is allocated and released only by the trusted
+      // transactional gateway; client writes/read are forbidden.
+      match /slots/{slotId} {
+        allow read, write: if false;
+      }
+
       match /agentConfig/{configId} {
         allow get, list: if isStaff(companyId);
         allow create: if isManager(companyId)

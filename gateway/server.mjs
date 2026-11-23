@@ -42,6 +42,15 @@ async function identity(req,auth){
  try {const decoded=await auth.verifyIdToken(authorization.slice(7));return decoded.uid;}
  catch {throw new HttpError("TOKEN_INVALIDO",401);}
 }
+// Default appointment capacity is one reservation per 30-minute interval, per company.
+// Slot lock is server-only and is written atomically with a confirmed booking.
+const SLOT_INTERVAL_MS=30*60*1000;
+function slotKey(timestamp) {
+ if(!timestamp||typeof timestamp.toMillis!=="function")throw new HttpError("HORARIO_INVALIDO",400);
+ const ms=timestamp.toMillis();
+ if(!Number.isFinite(ms)||ms<=0)throw new HttpError("HORARIO_INVALIDO",400);
+ return "slot_"+Math.floor(ms/SLOT_INTERVAL_MS).toString(36);
+}
 async function confirmBooking(db,uid,body){
  if(!body||body.accepted!==true)throw new HttpError("CONFIRMACAO_EXPLICITA_OBRIGATORIA",400);
  const companyId=validId(body.companyId),conversationId=validId(body.conversationId),proposalId=validId(body.proposalId);
@@ -56,15 +65,53 @@ async function confirmBooking(db,uid,body){
   if(!m.exists||m.get("active")!==true||m.get("role")!=="customer"||!c.exists||c.get("customerUid")!==uid||c.get("companyId")!==companyId)
    throw new HttpError("SEM_AUTORIZACAO",403);
   if(!p.exists||p.get("customerUid")!==uid)throw new HttpError("PROPOSTA_NAO_AUTORIZADA",403);
-  if(b.exists) return {status:"confirmed",bookingId:proposalId,replayed:true};
+  if(b.exists) {
+   if(b.get("status")==="confirmed")return {status:"confirmed",bookingId:proposalId,replayed:true};
+   throw new HttpError("RESERVA_CANCELADA",409);
+  }
   if(p.get("status")!=="pending"||!p.get("expiresAt")||p.get("expiresAt").toMillis()<=Date.now()||!p.get("slot")||p.get("slot").toMillis()<=Date.now())
    throw new HttpError("PROPOSTA_INDISPONIVEL",409);
-  tx.update(proposal,{status:"confirmed",confirmedAt:Timestamp.now()});
-  tx.create(booking,{customerUid:uid,proposalId,slot:p.get("slot"),status:"confirmed",createdAt:Timestamp.now(),mode:"EMULATOR"});
-  tx.create(event,{type:"BOOKING_CONFIRMED_EXPLICIT",actorUid:uid,proposalId,createdAt:Timestamp.now()});
+  const key=slotKey(p.get("slot"));
+  const lock=db.doc(base+"/slots/"+key);
+  const locked=await tx.get(lock);
+  if(locked.exists)throw new HttpError("HORARIO_OCUPADO",409);
+  const at=Timestamp.now();
+  tx.create(lock,{status:"confirmed",proposalId,conversationId,customerUid:uid,slot:p.get("slot"),createdAt:at});
+  tx.update(proposal,{status:"confirmed",confirmedAt:at});
+  tx.create(booking,{customerUid:uid,proposalId,slot:p.get("slot"),slotKey:key,status:"confirmed",createdAt:at,mode:"EMULATOR"});
+  tx.create(event,{type:"BOOKING_CONFIRMED_EXPLICIT",actorUid:uid,proposalId,slotKey:key,createdAt:at});
   return {status:"confirmed",bookingId:proposalId,replayed:false};
  });
 }
+async function cancelBooking(db,uid,body){
+ const companyId=validId(body?.companyId),conversationId=validId(body?.conversationId),proposalId=validId(body?.proposalId);
+ if(body?.accepted!==true)throw new HttpError("CANCELAMENTO_EXPLICITO_OBRIGATORIO",400);
+ const base="companies/"+companyId,convBase=base+"/conversations/"+conversationId;
+ const m=db.doc(base+"/members/"+uid),c=db.doc(convBase),p=db.doc(convBase+"/proposals/"+proposalId),b=db.doc(convBase+"/bookings/"+proposalId);
+ const event=db.collection(convBase+"/audit").doc();
+ return db.runTransaction(async tx=>{
+  const [member,conversation,proposal,booking]=await Promise.all([tx.get(m),tx.get(c),tx.get(p),tx.get(b)]);
+  if(!member.exists||member.get("active")!==true||!conversation.exists
+     ||conversation.get("companyId")!==companyId||conversation.get("customerUid")!==uid||member.get("role")!=="customer")
+   throw new HttpError("SEM_AUTORIZACAO",403);
+  if(!proposal.exists||proposal.get("customerUid")!==uid||!booking.exists||booking.get("customerUid")!==uid)
+   throw new HttpError("RESERVA_NAO_AUTORIZADA",403);
+  if(booking.get("status")==="cancelled")return {status:"cancelled",bookingId:proposalId,replayed:true};
+  if(booking.get("status")!=="confirmed")throw new HttpError("RESERVA_INDISPONIVEL",409);
+  const key=slotKey(booking.get("slot"));
+  const lock=db.doc(base+"/slots/"+key);
+  const current=await tx.get(lock);
+  if(!current.exists||current.get("proposalId")!==proposalId||current.get("conversationId")!==conversationId)
+   throw new HttpError("CONFLITO_BLOQUEIO_HORARIO",409);
+  const at=Timestamp.now();
+  tx.update(b,{status:"cancelled",cancelledAt:at});
+  tx.update(p,{status:"cancelled",cancelledAt:at});
+  tx.delete(lock);
+  tx.create(event,{type:"BOOKING_CANCELLED_EXPLICIT",actorUid:uid,proposalId,slotKey:key,createdAt:at});
+  return {status:"cancelled",bookingId:proposalId,replayed:false};
+ });
+}
+
 async function cancelProposal(db,uid,body) {
  const companyId=validId(body?.companyId),conversationId=validId(body?.conversationId),proposalId=validId(body?.proposalId);
  const base="companies/"+companyId;
@@ -154,11 +201,11 @@ export function startGateway({port=8787}={}) {
   const finish=(status,payload)=>{res.writeHead(status,headers);res.end(JSON.stringify(payload));};
   if(req.method==="OPTIONS"){finish(204,{});return;}
   if(req.method==="GET"&&req.url==="/health"){finish(200,{status:"emulator-only",production:false});return;}
-  if(req.method!=="POST"||!["/api/bookings/confirm","/api/proposals/cancel","/api/knowledge/respond","/api/conversations/handoff"].includes(req.url)){finish(404,{error:"ROTA_INEXISTENTE"});return;}
+  if(req.method!=="POST"||!["/api/bookings/confirm","/api/bookings/cancel","/api/proposals/cancel","/api/knowledge/respond","/api/conversations/handoff"].includes(req.url)){finish(404,{error:"ROTA_INEXISTENTE"});return;}
   try{
    const uid=await identity(req,auth);
    const body=await readBody(req);
-   const result=req.url==="/api/bookings/confirm"?await confirmBooking(db,uid,body):req.url==="/api/proposals/cancel"?await cancelProposal(db,uid,body):req.url==="/api/knowledge/respond"?await respondFromKnowledge(db,uid,body):await requestHumanHandoff(db,uid,body);
+   const result=req.url==="/api/bookings/confirm"?await confirmBooking(db,uid,body):req.url==="/api/bookings/cancel"?await cancelBooking(db,uid,body):req.url==="/api/proposals/cancel"?await cancelProposal(db,uid,body):req.url==="/api/knowledge/respond"?await respondFromKnowledge(db,uid,body):await requestHumanHandoff(db,uid,body);
    finish(200,result);
   }catch(err){finish(err instanceof HttpError?err.status:500,{error:err instanceof HttpError?err.message:"FALHA_INTERNA"});}
  });
