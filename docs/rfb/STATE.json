@@ -9,35 +9,45 @@
   "documentationCommit": "d72f89ccb4351c36ee3490e216ebc3c2e32b1329",
   "implementationCommit": "a34af92533a3e789eab3a31a47fb090fe002fc8a",
   "pr": "https://github.com/CristianoRFB/RFB-Agent/pull/1",
-  "stage": "IMPLEMENTADO_NAO_HOMOLOGADO",
-  "environment": "STATIC_BROWSER_LOCAL_ONLY",
+  "stage": "G2_EMULATOR_INTEGRATION_TESTED_PARTIAL_BROWSER",
+  "environment": "AUTH_FIRESTORE_EMULATOR_REACT_GATEWAY_NODE",
   "production": "NOT_RUN",
   "costGoalBRLMonthly": 0,
   "tasks": [
     {
       "id": "S001",
       "status": "REVIEW",
-      "acceptance": "Arquitetura, ameaças, docs source importados"
+      "detail": "RFB method spec imported, design/threat architecture documented"
     },
     {
       "id": "S002",
-      "status": "BLOCKED",
-      "acceptance": "Firebase Auth/Firestore Rules e RBAC/tenancy reais, não apenas no client"
+      "status": "TESTED_EMULATOR",
+      "detail": "Firebase Auth, Firestore Rules, staff/manager/customer tenant RBAC; server-only provisioning"
     },
     {
       "id": "S003",
-      "status": "IMPLEMENTADO_NAO_HOMOLOGADO",
-      "acceptance": "Busca LEXICAL versionada com fonte e fallback seguro"
+      "status": "TESTED_SIMULATOR",
+      "detail": "Versioned knowledge and bounded lexical response with source and fail-safe fallback; semantic retrieval not implemented"
     },
     {
       "id": "S004",
-      "status": "IMPLEMENTADO_NAO_HOMOLOGADO",
-      "acceptance": "Agendamento SIMULADO com confirmação explícita, expiração, idempotência local"
+      "status": "TESTED_EMULATOR",
+      "detail": "Gateway transactional confirm/cancel, explicit accepted true, idempotency, expiry, tenant check, audit; no external scheduling"
     },
     {
       "id": "S005",
-      "status": "BACKLOG",
-      "acceptance": "Handoff real, analytics e configuração"
+      "status": "PARTIAL",
+      "detail": "Human status, manager config, role view, basic analytics; notifications and production dashboard not implemented"
+    },
+    {
+      "id": "S006",
+      "status": "BLOCKED",
+      "detail": "Cloudflare Worker backend adapter and authorized deployment, pricing/quotas review, real production controls"
+    },
+    {
+      "id": "S007",
+      "status": "BLOCKED",
+      "detail": "Model inference and/or semantic search under verified R$0 limits, unavailable in current demo"
     }
   ],
   "qa": {
@@ -49,11 +59,7 @@
     "nodeUnitTests": {
       "status": "PASS",
       "casesWritten": 7,
-      "casesPassed": 7,
-      "casesFailed": 0,
-      "environment": "GitHub Actions Node.js 22",
-      "testedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311",
-      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45092299463"
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085442"
     },
     "ci": {
       "status": "PASS",
@@ -79,6 +85,25 @@
     },
     "deploy": {
       "status": "NOT_RUN"
+    },
+    "firestoreRules": {
+      "status": "PASS",
+      "tests": 11,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085388"
+    },
+    "gateway": {
+      "status": "PASS",
+      "tests": 8,
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085420"
+    },
+    "reactBuild": {
+      "status": "PASS",
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085406"
+    },
+    "browserIntegrated": {
+      "status": "IN_PROGRESS",
+      "run": "https://github.com/CristianoRFB/RFB-Agent/actions/runs/45095085496",
+      "notes": "Earlier 2/3 PASS, message visibility unresolved; diagnostic added, do not claim E2E green until checked"
     }
   },
   "risks": [
@@ -89,6 +114,19 @@
     "AV-05 busca lexical não é RAG/LLM",
     "AV-06 concorrência não resolvida server-side"
   ],
-  "nextSlice": "Implement Firebase Auth and Firestore Rules with realistic cross-tenant and confirmation security tests in isolated Emulator. Keep demo-only until authorized; review captured screenshots, accessibility and cost.",
-  "browserTestedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311"
+  "nextSlice": "Read browser CI diagnostic and verify Firestore read under customer; fix concrete regression, then ensure E2E 3/3. Worker adapter must be reviewed separately before any authorized staging.",
+  "browserTestedCommit": "5af49046b5525e8346c7b0412aedd78c37c27311",
+  "updatedUtc": "2026-11-23T01:35:00Z",
+  "prodStatus": "NOT_DEPLOYED",
+  "sourceOfTruth": "docs/source/ESPECIFICACAO-RFB.txt",
+  "completionPercent": "NOT_VERIFIABLE_90_PERCENT_NOT_REACHED",
+  "currentHeadAtCheckpoint": "94cbbf26f0bd37aa5feafe42cd10642456ea3632",
+  "cloudflare": {
+    "accountChecked": true,
+    "matchingRfbagentWorkers": 0,
+    "matchingRfbagentPages": 0,
+    "deploy": "NOT_RUN",
+    "billingChanged": false,
+    "resourcesChanged": false
+  }
 }
