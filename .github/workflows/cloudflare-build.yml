@@ -1,0 +1,34 @@
+name: Cloudflare cf build (inert, no deployment)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'worker/**'
+      - 'web/**'
+      - '.github/workflows/cloudflare-build.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  compile-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned cf CLI and UI build deps
+        run: npm install --prefix web --no-audit --no-fund
+      - name: Compile Worker without account access or secret
+        working-directory: web
+        run: npm run build:cloudflare
+      - name: Keep review-only artifact (no deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rfbagent-inert-cloudflare-build
+          path: web/.cloudflare/output/
+          if-no-files-found: ignore
+          retention-days: 7
