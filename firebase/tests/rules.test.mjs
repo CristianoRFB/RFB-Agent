@@ -118,3 +118,10 @@ test("configuração versionada do simulador é exclusiva do gestor",async()=>{
  await assertSucceeds(getDoc(attendantDoc));
  await assertFails(updateDoc(attendantDoc,{tone:"acolhedor",version:3,updatedAt:serverTimestamp()}));
 });
+
+test("cliente autorizado também pode consultar mensagens persistidas da conversa",async()=>{
+ const ownMessages=collection(dbFor("customerA"),"companies/alpha/conversations/conversation-a/messages");
+ await assertSucceeds(getDocs(ownMessages));
+ const otherMessages=collection(dbFor("customerB"),"companies/alpha/conversations/conversation-a/messages");
+ await assertFails(getDocs(otherMessages));
+});
