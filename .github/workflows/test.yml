@@ -1,9 +1,15 @@
 name: Unit tests (deterministic local domain)
 on:
-  push:
-    branches: [feature/rfb-agent-g1-vertical-simulator]
   pull_request:
     branches: [main]
+    paths:
+      - 'src/domain.mjs'
+      - 'src/app.js'
+      - 'tests/domain.test.mjs'
+      - '.github/workflows/test.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

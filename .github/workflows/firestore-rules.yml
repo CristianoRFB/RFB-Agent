@@ -2,6 +2,13 @@ name: Firestore tenant security (emulator only)
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'firebase/**'
+      - 'package.json'
+      - '.github/workflows/firestore-rules.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

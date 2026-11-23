@@ -2,6 +2,12 @@ name: React TypeScript build (emulator-only)
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-build.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

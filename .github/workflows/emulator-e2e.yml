@@ -2,6 +2,16 @@ name: Full emulator browser QA (synthetic)
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'web/**'
+      - 'firebase/**'
+      - 'gateway/**'
+      - 'scripts/run-emulator-e2e.mjs'
+      - 'package.json'
+      - '.github/workflows/emulator-e2e.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

@@ -2,6 +2,16 @@ name: Browser QA (synthetic only)
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'index.html'
+      - 'src/**'
+      - 'tests/browser/**'
+      - 'playwright.config.mjs'
+      - 'package.json'
+      - '.github/workflows/browser.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
