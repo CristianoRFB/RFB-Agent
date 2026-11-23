@@ -53,7 +53,7 @@ export default function App(){
  const knowledge=useItems<Knowledge>(root&&member?.role!=="customer"?root+"/knowledge":null);
  // Customer documents are fetched using a separate boolean filter below; no unscoped customer query.
  const customerKnowledge=useItems<Knowledge>(root&&member?.role==="customer"?root+"/knowledge":null,member?.role==="customer"?{field:"published",value:true}:undefined);
- const conv=conversations.items.find(x=>x.id===selected)??conversations.items[0], cid=conv?.id;
+ const conv=conversations.items.find(x=>x.id===selected)??conversations.items[0], cid=selected??conv?.id;
  const messages=useItems<Message>(root&&cid?root+"/conversations/"+cid+"/messages":null);
  const proposals=useItems<Proposal>(root&&cid?root+"/conversations/"+cid+"/proposals":null);
  const bookings=useItems<{id:string;status:string}>(root&&cid?root+"/conversations/"+cid+"/bookings":null);
@@ -69,7 +69,7 @@ export default function App(){
   try{await task();setFeedback(ok);}catch(e){setFeedback("Operação recusada: "+messageFrom(e));}
  }
  async function login(e:FormEvent){e.preventDefault();if(auth)await run(()=>signInWithEmailAndPassword(checkedAuth(),email,password),"Conta de teste autenticada.");}
- async function createConversation(){if(db&&root&&user)await run(()=>addDoc(collection(checkedDb(),root+"/conversations"),{companyId:company,customerUid:user.uid,status:"open",createdAt:serverTimestamp(),updatedAt:serverTimestamp()}),"Nova conversa criada no emulador.");}
+ async function createConversation(){if(db&&root&&user)await run(async()=>{const created=await addDoc(collection(checkedDb(),root+"/conversations"),{companyId:company,customerUid:user.uid,status:"open",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});setSelected(created.id);},"Nova conversa criada no emulador.");}
  async function send(e:FormEvent){
   e.preventDefault();if(!db||!root||!cid||!user||!text.trim())return;
   const value=text.trim();
