@@ -1,0 +1,28 @@
+name: Unit tests (deterministic local domain)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/domain.mjs'
+      - 'src/app.js'
+      - 'tests/domain.test.mjs'
+      - '.github/workflows/test.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Unit tests
+        run: node --test tests/*.test.mjs
+      - name: JavaScript syntax
+        run: |
+          node --check src/domain.mjs
+          node --check src/app.js

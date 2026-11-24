@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "product": "RFBAgent",
+  "status": "NOT_CAPTURED",
+  "screenshots": [
+    {
+      "id": "S1",
+      "caption": "Inbox e histórico",
+      "status": "NOT_CAPTURED",
+      "kind": "REAL_CAPTURE",
+      "path": null,
+      "commit_sha": null,
+      "viewport": null,
+      "captured_at": null,
+      "environment": null,
+      "privacy_checked": false
+    },
+    {
+      "id": "S2",
+      "caption": "Resposta com fonte",
+      "status": "NOT_CAPTURED",
+      "kind": "REAL_CAPTURE",
+      "path": null,
+      "commit_sha": null,
+      "viewport": null,
+      "captured_at": null,
+      "environment": null,
+      "privacy_checked": false
+    },
+    {
+      "id": "S3",
+      "caption": "Reserva com confirmação",
+      "status": "NOT_CAPTURED",
+      "kind": "REAL_CAPTURE",
+      "path": null,
+      "commit_sha": null,
+      "viewport": null,
+      "captured_at": null,
+      "environment": null,
+      "privacy_checked": false
+    },
+    {
+      "id": "S4",
+      "caption": "Fila de transferência humana",
+      "status": "NOT_CAPTURED",
+      "kind": "REAL_CAPTURE",
+      "path": null,
+      "commit_sha": null,
+      "viewport": null,
+      "captured_at": null,
+      "environment": null,
+      "privacy_checked": false
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+name: Browser QA (synthetic only)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'src/**'
+      - 'tests/browser/**'
+      - 'playwright.config.mjs'
+      - 'package.json'
+      - '.github/workflows/browser.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install isolated browser test dependency
+        run: npm install --no-save @playwright/test@1.64.1
+      - name: Install browser with Linux dependencies
+        run: npx playwright install --with-deps chromium
+      - name: E2E on localhost (no deployment)
+        run: npx playwright test -c playwright.config.mjs
+      - name: Browser evidence, synthetic data only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rfbagent-browser-evidence
+          path: |
+            test-results/*.png
+            test-results/**/*.zip
+          if-no-files-found: ignore
+          retention-days: 7

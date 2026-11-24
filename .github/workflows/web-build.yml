@@ -1,0 +1,31 @@
+name: React TypeScript build (emulator-only)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-build.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install web dependencies
+        run: npm install --prefix web --no-audit --no-fund
+      - name: Typecheck and Vite build
+        run: npm run build --prefix web
+      - name: Upload build for inspection (not deployed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rfbagent-web-emulator-build
+          path: web/dist/
+          retention-days: 7

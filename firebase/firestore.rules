@@ -1,0 +1,212 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function memberPath(companyId) {
+      return /databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid);
+    }
+    function isMember(companyId) {
+      return signedIn()
+        && exists(memberPath(companyId))
+        && get(memberPath(companyId)).data.active == true;
+    }
+    function role(companyId) {
+      return get(memberPath(companyId)).data.role;
+    }
+    function isStaff(companyId) {
+      return isMember(companyId) && role(companyId) in ['manager', 'attendant'];
+    }
+    function isManager(companyId) {
+      return isMember(companyId) && role(companyId) == 'manager';
+    }
+    function conversationPath(companyId, conversationId) {
+      return /databases/$(database)/documents/companies/$(companyId)/conversations/$(conversationId);
+    }
+    function conversationVisible(companyId, conversationId) {
+      return isMember(companyId)
+        && exists(conversationPath(companyId, conversationId))
+        && (isStaff(companyId) ||
+          get(conversationPath(companyId, conversationId)).data.customerUid == request.auth.uid);
+    }
+    function conversationBelongsToCustomer(companyId, conversationId) {
+      return isMember(companyId)
+        && exists(conversationPath(companyId, conversationId))
+        && get(conversationPath(companyId, conversationId)).data.customerUid == request.auth.uid;
+    }
+    function validKnowledge(companyId) {
+      return request.resource.data.keys().hasOnly([
+          'companyId','title','body','published','version','updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'companyId','title','body','published','version','updatedAt'
+        ])
+        && request.resource.data.companyId == companyId
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 10000
+        && request.resource.data.published is bool
+        && request.resource.data.version is int
+        && request.resource.data.version >= 1
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function validAgentConfig(companyId) {
+      return request.resource.data.keys().hasOnly([
+          'companyId','language','tone','mode','version','updatedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'companyId','language','tone','mode','version','updatedAt'
+        ])
+        && request.resource.data.companyId == companyId
+        && request.resource.data.language in ['pt-BR','en-US','es-ES']
+        && request.resource.data.tone in ['neutro','formal','acolhedor']
+        && request.resource.data.mode == 'LEXICAL_SIMULATOR'
+        && request.resource.data.version is int
+        && request.resource.data.version >= 1
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /companies/{companyId} {
+      allow get: if isMember(companyId);
+      allow list, create, update, delete: if false;
+
+      match /members/{userId} {
+        allow get: if isMember(companyId) && (
+          request.auth.uid == userId || isManager(companyId)
+        );
+        allow list: if isManager(companyId);
+        // Membership and privilege assignment are server-only.
+        allow create, update, delete: if false;
+      }
+
+      match /knowledge/{docId} {
+        allow get, list: if isMember(companyId)
+          && (isStaff(companyId) || resource.data.published == true);
+        allow create: if isManager(companyId)
+          && validKnowledge(companyId)
+          && request.resource.data.version == 1;
+        allow update: if isManager(companyId)
+          && validKnowledge(companyId)
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['title','body','published','version','updatedAt'])
+          && request.resource.data.version == resource.data.version + 1;
+        allow delete: if false;
+      }
+
+      // A 30-minute slot is allocated and released only by the trusted
+      // transactional gateway; client writes/read are forbidden.
+      match /slots/{slotId} {
+        allow read, write: if false;
+      }
+
+      match /agentConfig/{configId} {
+        allow get, list: if isStaff(companyId);
+        allow create: if isManager(companyId)
+          && validAgentConfig(companyId)
+          && request.resource.data.version == 1;
+        allow update: if isManager(companyId)
+          && validAgentConfig(companyId)
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['language','tone','version','updatedAt'])
+          && request.resource.data.version == resource.data.version + 1;
+        allow delete: if false;
+      }
+
+      match /conversations/{conversationId} {
+        allow get, list: if isMember(companyId)
+          && (isStaff(companyId) || resource.data.customerUid == request.auth.uid);
+        allow create: if isMember(companyId)
+          && request.resource.data.keys().hasOnly([
+            'companyId','customerUid','status','createdAt','updatedAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'companyId','customerUid','status','createdAt','updatedAt'
+          ])
+          && request.resource.data.companyId == companyId
+          && request.resource.data.customerUid == request.auth.uid
+          && role(companyId) == 'customer'
+          && request.resource.data.status == 'open'
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+        // State transitions must write a server-owned audit entry atomically.
+        // Even staff must use the authenticated gateway, never client writes.
+        allow update: if false;
+        allow delete: if false;
+
+        match /messages/{messageId} {
+          allow get: if conversationVisible(companyId, conversationId);
+          // Lists are queries: each customer must prove ownership with
+          // where("customerUid", "==", request.auth.uid) on the child document.
+          allow list: if isStaff(companyId)
+            || (isMember(companyId) && resource.data.customerUid == request.auth.uid);
+          allow create: if conversationVisible(companyId, conversationId)
+            && request.resource.data.keys().hasOnly([
+              'customerUid','senderUid','senderRole','text','createdAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'customerUid','senderUid','senderRole','text','createdAt'
+            ])
+            && request.resource.data.senderUid == request.auth.uid
+            && request.resource.data.customerUid == get(conversationPath(companyId, conversationId)).data.customerUid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 1000
+            && request.resource.data.createdAt == request.time
+            && (
+              (role(companyId) == 'customer'
+                && conversationBelongsToCustomer(companyId, conversationId)
+                && request.resource.data.senderRole == 'customer')
+              || (isStaff(companyId) && request.resource.data.senderRole == 'staff')
+            );
+          allow update, delete: if false;
+        }
+
+        match /proposals/{proposalId} {
+          allow get: if conversationVisible(companyId, conversationId);
+          allow list: if isStaff(companyId)
+            || (isMember(companyId) && resource.data.customerUid == request.auth.uid);
+          allow create: if conversationBelongsToCustomer(companyId, conversationId)
+            && role(companyId) == 'customer'
+            && request.resource.data.keys().hasOnly([
+              'customerUid','slot','expiresAt','status','createdAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'customerUid','slot','expiresAt','status','createdAt'
+            ])
+            && request.resource.data.customerUid == request.auth.uid
+            && request.resource.data.status == 'pending'
+            && request.resource.data.slot is timestamp
+            && request.resource.data.slot > request.time
+            && request.resource.data.slot < request.time + duration.value(180, 'd')
+            && request.resource.data.expiresAt is timestamp
+            && request.resource.data.expiresAt > request.time
+            && request.resource.data.expiresAt <= request.time + duration.value(15, 'm')
+            && request.resource.data.createdAt == request.time;
+          // Client-side confirmation is NOT a trusted booking transaction.
+          allow update, delete: if false;
+        }
+
+        match /bookings/{bookingId} {
+          allow get: if conversationVisible(companyId, conversationId);
+          allow list: if isStaff(companyId)
+            || (isMember(companyId) && resource.data.customerUid == request.auth.uid);
+          allow create, update, delete: if false;
+        }
+
+        match /audit/{eventId} {
+          allow get, list: if isStaff(companyId);
+          allow create, update, delete: if false;
+        }
+      }
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
