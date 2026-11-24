@@ -1,5 +1,17 @@
 # RFBAgent — Atendimento que entende e executa com permissão
 
+<!-- RFB-PORTFOLIO-README-V1 -->
+<div align="center">
+  <img src="public/brand/logo.svg" width="440" alt="Logotipo conceitual RFBAgent"/>
+
+  **Atendimento que entende e executa com permissão**
+
+  <sub>Simulador lexical testado em emuladores; não é LLM implantado nem produto publicado.</sub>
+</div>
+
+> **RFB Labs — portfólio técnico.** O projeto apresenta simulação baseada em fontes e ações mediante confirmação. O resultado dos testes deve ser lido no contexto local/emulador, sem inferir funcionamento comercial.
+
+
 Produto 08 do RFB Labs desenvolvido conforme RFB Method. **Código de núcleo testado em emuladores; produção não configurada nem publicada.**
 
 ## O que funciona na homologação local
@@ -39,3 +51,24 @@ Produto 08 do RFB Labs desenvolvido conforme RFB Method. **Código de núcleo te
 **Ainda não há 90% ou conclusão integral demonstrada**. Faltam IA semântica real, uso com Firebase staging/produção, infraestrutura aprovada, APIs externas de agenda e notificações, catálogo completo de telas, segurança/privacidade/observabilidade de produção.
 
 **Meta R$0/mês:** nenhuma operação financeira ou recurso Cloudflare/Firebase real foi criado; confirmar limites do Spark/Workers Free antes de qualquer deploy. [PR #1](https://github.com/CristianoRFB/RFB-Agent/pull/1) permanece DRAFT.
+
+## Galeria da aplicação
+
+Não há imagens de execução real versionadas nesta branch. Quatro capturas de desktop/mobile devem ser registradas após QA, usando dados sintéticos:
+
+| Experiência | Captura |
+|---|---|
+| 1. Inbox e histórico | Pendente de captura real |
+| 2. Resposta com fonte | Pendente de captura real |
+| 3. Reserva com confirmação | Pendente de captura real |
+| 4. Fila de transferência humana | Pendente de captura real |
+
+[Manifesto de imagens](docs/screenshots/manifest.json). Não usar ilustração conceitual como prova funcional.
+
+---
+
+<div align="center">
+  <img src="public/brand/assinatura-rfb.svg" width="70" alt="Assinatura institucional RFB"/>
+  
+  <sub>Desenvolvido por RFB — a assinatura não substitui a identidade do aplicativo.</sub>
+</div>
